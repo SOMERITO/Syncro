@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.1 (Cloud)</title>
+    <title>Syncro v5.2 (Cloud)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -91,7 +91,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="cloud-check" class="w-4 h-4 text-indigo-500"></i>
-                    <p>Cloud Edition v5.1</p>
+                    <p>Cloud Edition v5.2</p>
                 </div>
             </div>
         </aside>
@@ -100,6 +100,23 @@
             <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth">
                 </div>
         </main>
+    </div>
+
+    <div id="linkModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="linkModalContent" class="bg-white rounded-3xl shadow-2xl w-[90%] max-w-md p-6 transform translate-y-8 transition-transform duration-300">
+            <div class="flex items-center gap-3 mb-2">
+                <div class="p-2.5 bg-indigo-50 text-indigo-600 rounded-xl">
+                    <i data-lucide="link" class="w-5 h-5"></i>
+                </div>
+                <h3 id="linkModalTitle" class="text-xl font-black text-slate-800 tracking-tight">Editar Enlace</h3>
+            </div>
+            <p class="text-sm text-slate-500 mb-5">Pega la URL web que deseas asociar. Se creará un botón de acceso directo automáticamente.</p>
+            <input type="url" id="linkModalInput" placeholder="https://..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all mb-6">
+            <div class="flex justify-end gap-3">
+                <button onclick="app.closeModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">Cancelar</button>
+                <button id="linkModalSaveBtn" class="px-5 py-2.5 rounded-xl text-sm font-bold bg-indigo-600 text-white hover:bg-indigo-700 shadow-md shadow-indigo-200 transition-colors">Guardar</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -115,8 +132,22 @@
             isSidebarOpen: true,
             currentFilter: 'all',
             saveTimeout: null, 
+            modalCallback: null,
 
             init() {
+                // Recuperar memoria a corto plazo
+                const savedSidebar = localStorage.getItem('syncro_sidebar_open');
+                if (savedSidebar !== null) {
+                    this.isSidebarOpen = savedSidebar === 'true';
+                }
+                
+                // Aplicar estado del sidebar inmediatamente
+                const sidebar = document.getElementById('sidebar');
+                if(!this.isSidebarOpen) {
+                    sidebar.classList.remove('sidebar-open');
+                    sidebar.classList.add('sidebar-closed');
+                }
+
                 lucide.createIcons();
                 this.setupKeyboardShortcuts();
                 this.loadFromCloud(); 
@@ -153,24 +184,23 @@
                         const data = await response.json();
                         if (data.record && data.record.temas) {
                             
-                            // Mapeo y migración inteligente: Junta Validador y Cumplimiento de datos antiguos
                             this.topics = data.record.temas.map(t => {
                                 if (!t.sections.complianceValidator) {
                                     t.sections.complianceValidator = [];
-                                    if (t.sections.validator) {
-                                        t.sections.complianceValidator.push(...t.sections.validator);
-                                        delete t.sections.validator;
-                                    }
-                                    if (t.sections.compliance) {
-                                        t.sections.complianceValidator.push(...t.sections.compliance);
-                                        delete t.sections.compliance;
-                                    }
+                                    if (t.sections.validator) { t.sections.complianceValidator.push(...t.sections.validator); delete t.sections.validator; }
+                                    if (t.sections.compliance) { t.sections.complianceValidator.push(...t.sections.compliance); delete t.sections.compliance; }
                                 }
                                 if (typeof t.link === 'undefined') t.link = '';
                                 return t;
                             });
 
                             this.sortTopics();
+                            
+                            // Recuperar tema donde nos quedamos
+                            const savedTopicId = localStorage.getItem('syncro_topic_id');
+                            if (savedTopicId && this.topics.some(t => t.id === savedTopicId)) {
+                                this.selectedTopicId = savedTopicId;
+                            }
                         }
                         this.updateSyncUI('synced');
                     } else {
@@ -215,11 +245,21 @@
                 }
             },
 
-            // --- Lógica de Interfaz y Teclado ---
+            // --- Lógica de Interfaz, Modal y Teclado ---
             setupKeyboardShortcuts() {
                 document.addEventListener('keydown', (e) => {
-                    if (e.key === 'Escape' && this.isSidebarOpen) {
-                        this.toggleSidebar();
+                    if (e.key === 'Escape') {
+                        // Si el modal está abierto, ciérralo primero
+                        const modal = document.getElementById('linkModal');
+                        if (!modal.classList.contains('pointer-events-none')) {
+                            this.closeModal();
+                            return;
+                        }
+                        
+                        // Si no, cierra el panel
+                        if (this.isSidebarOpen) {
+                            this.toggleSidebar();
+                        }
                     }
                     if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
                         e.preventDefault();
@@ -228,8 +268,46 @@
                 });
             },
 
+            openModal(title, defaultValue, callback) {
+                this.modalCallback = callback;
+                document.getElementById('linkModalTitle').innerText = title;
+                const input = document.getElementById('linkModalInput');
+                input.value = defaultValue || '';
+                
+                const modal = document.getElementById('linkModal');
+                const content = document.getElementById('linkModalContent');
+                
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-y-8');
+                
+                document.getElementById('linkModalSaveBtn').onclick = () => {
+                    if(this.modalCallback) this.modalCallback(input.value);
+                    this.closeModal();
+                };
+
+                input.onkeydown = (e) => {
+                    if(e.key === 'Enter') {
+                        e.preventDefault();
+                        document.getElementById('linkModalSaveBtn').click();
+                    }
+                };
+
+                setTimeout(() => input.focus(), 300);
+            },
+
+            closeModal() {
+                const modal = document.getElementById('linkModal');
+                const content = document.getElementById('linkModalContent');
+                
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-y-8');
+                this.modalCallback = null;
+            },
+
             toggleSidebar() {
                 this.isSidebarOpen = !this.isSidebarOpen;
+                localStorage.setItem('syncro_sidebar_open', this.isSidebarOpen); // Guardar memoria
+                
                 const sidebar = document.getElementById('sidebar');
                 if(this.isSidebarOpen) {
                     sidebar.classList.remove('sidebar-closed');
@@ -242,6 +320,7 @@
 
             goHome() {
                 this.selectedTopicId = null;
+                localStorage.removeItem('syncro_topic_id'); // Borrar memoria
                 this.renderSidebar();
                 this.renderMain();
             },
@@ -256,7 +335,7 @@
                         searchInput.focus();
                         searchInput.select();
                     }
-                }, 300); // Retraso de 300ms para permitir que el sidebar se abra visualmente
+                }, 300); 
             },
 
             // --- Lógica de Datos ---
@@ -286,6 +365,8 @@
                 
                 this.sortTopics();
                 this.selectedTopicId = newId;
+                localStorage.setItem('syncro_topic_id', this.selectedTopicId); // Guardar memoria
+                
                 this.currentFilter = 'all';
                 this.speechSearchTerm = '';
                 
@@ -300,6 +381,8 @@
 
             selectTopic(id) {
                 this.selectedTopicId = id;
+                localStorage.setItem('syncro_topic_id', this.selectedTopicId); // Guardar memoria
+                
                 this.currentFilter = 'all';
                 this.speechSearchTerm = '';
                 this.renderSidebar();
@@ -320,8 +403,10 @@
                 this.topics = this.topics.filter(t => t.id !== id);
                 if (this.selectedTopicId === id && this.topics.length > 0) {
                     this.selectedTopicId = this.topics[0].id;
+                    localStorage.setItem('syncro_topic_id', this.selectedTopicId);
                 } else if (this.topics.length === 0) {
                     this.selectedTopicId = null;
+                    localStorage.removeItem('syncro_topic_id');
                 }
                 this.renderSidebar();
                 this.renderMain();
@@ -342,13 +427,12 @@
             editTopicLink() {
                 const topic = this.topics.find(t => t.id === this.selectedTopicId);
                 if(topic) {
-                    const newLink = prompt("Ingresa el enlace web general para este tema:", topic.link || "");
-                    if (newLink !== null) {
+                    this.openModal("Enlace General del Tema", topic.link, (newLink) => {
                         topic.link = newLink;
                         topic.lastModified = Date.now();
                         this.renderMain();
                         this.scheduleSave();
-                    }
+                    });
                 }
             },
 
@@ -377,13 +461,12 @@
                 const topic = this.topics.find(t => t.id === this.selectedTopicId);
                 const item = topic.sections[section].find(i => i.id === id);
                 if(item) {
-                    const newLink = prompt("Ingresa el enlace para este ítem:", item.link || "");
-                    if (newLink !== null) {
+                    this.openModal("Añadir Botón de Enlace", item.link, (newLink) => {
                         item.link = newLink;
                         topic.lastModified = Date.now();
                         this.renderMain();
                         this.scheduleSave();
-                    }
+                    });
                 }
             },
 
@@ -523,10 +606,10 @@
                                         <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4 text-emerald-600 group-hover:scale-110 transition-transform">
                                             <i data-lucide="link" class="w-6 h-6"></i>
                                         </div>
-                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Links Ocultos</h4>
+                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Links Dinámicos</h4>
                                         <p class="text-sm text-slate-500 leading-relaxed mb-4">Agrega URLs largas a cada ítem o tema. Se convertirán en botones para un clic.</p>
                                         <div class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg w-max">
-                                            <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Clic en Añadir Link
+                                            <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Botón interactivo
                                         </div>
                                     </div>
 
@@ -535,7 +618,7 @@
                                             <i data-lucide="cloud" class="w-6 h-6"></i>
                                         </div>
                                         <h4 class="font-bold text-slate-800 text-lg mb-2">Auto-Guardado</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">No te preocupes por guardar. Todo se sincroniza en la nube al instante.</p>
+                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">No te preocupes por guardar o refrescar. Todo se sincroniza y tu lugar se recuerda.</p>
                                         <div class="flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1.5 rounded-lg w-max">
                                             <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Luz superior
                                         </div>
@@ -573,13 +656,13 @@
                     </button>
                 `).join('');
 
-                const isGrid = this.currentFilter === 'all';
-                const gridClasses = isGrid ? 'grid-cols-1 md:grid-cols-2' : 'grid-cols-1 max-w-4xl mx-auto';
+                // TODO OCUPA TODA LA FILA AL 100%
+                const gridClasses = 'grid-cols-1 max-w-5xl mx-auto w-full';
 
                 container.innerHTML = `
-                    <div class="max-w-7xl mx-auto space-y-8 pb-20">
+                    <div class="max-w-7xl mx-auto space-y-8 pb-20 w-full">
                         
-                        <div class="flex flex-col gap-4">
+                        <div class="flex flex-col gap-4 max-w-5xl mx-auto w-full">
                             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
                                 <span class="font-medium cursor-pointer hover:text-indigo-600 transition-colors" onclick="app.goHome()">Inicio</span>
                                 <i data-lucide="chevron-right" class="w-4 h-4"></i>
@@ -591,15 +674,21 @@
                                     <input type="text" value="${topic.title}" oninput="app.updateTitle(this.value)" class="text-4xl lg:text-5xl font-black text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-slate-300 w-full tracking-tight" placeholder="Título del Tema">
                                 </div>
                                 
-                                <div class="flex flex-col items-start md:items-end gap-2 shrink-0 pt-2">
+                                <div class="flex items-center shrink-0 pt-2">
                                     ${topic.link && topic.link.trim() !== '' ? `
-                                        <a href="${topic.link.startsWith('http') ? topic.link : 'https://' + topic.link}" target="_blank" class="flex items-center gap-2 px-4 py-2 bg-indigo-100 text-indigo-700 hover:bg-indigo-200 rounded-xl text-sm font-bold transition-colors shadow-sm">
-                                            <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Link Principal
-                                        </a>
-                                    ` : ''}
-                                    <button onclick="app.editTopicLink()" class="text-xs text-slate-400 hover:text-indigo-500 font-medium flex items-center gap-1">
-                                        <i data-lucide="link" class="w-3.5 h-3.5"></i> ${topic.link && topic.link.trim() !== '' ? 'Editar enlace web' : 'Añadir enlace web'}
-                                    </button>
+                                        <div class="flex items-center gap-2">
+                                            <a href="${topic.link.startsWith('http') ? topic.link : 'https://' + topic.link}" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-200">
+                                                <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Enlace Principal
+                                            </a>
+                                            <button onclick="app.editTopicLink()" class="p-2.5 text-slate-400 hover:text-indigo-600 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl transition-all shadow-sm" title="Editar enlace">
+                                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                                            </button>
+                                        </div>
+                                    ` : `
+                                        <button onclick="app.editTopicLink()" class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-dashed border-slate-300 text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 rounded-xl text-sm font-bold transition-all">
+                                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir Enlace Principal
+                                        </button>
+                                    `}
                                 </div>
                             </div>
                             
@@ -612,14 +701,14 @@
                             </div>
                         </div>
 
-                        <div class="flex flex-wrap gap-3 slide-up" style="animation-delay: 0.1s">
+                        <div class="flex flex-wrap gap-3 max-w-5xl mx-auto w-full slide-up" style="animation-delay: 0.1s">
                             ${filtersHTML}
                         </div>
 
                         <div class="grid ${gridClasses} gap-8 slide-up" style="animation-delay: 0.2s">
                             ${isGrid || this.currentFilter === 'complianceValidator' ? `<div>${this.generateStandardCardHTML('Cumplimiento / Validador', 'check-square', topic.sections.complianceValidator, 'complianceValidator', 'sky')}</div>` : ''}
                             ${isGrid || this.currentFilter === 'keyInfo' ? `<div>${this.generateStandardCardHTML('Información Importante', 'lightbulb', topic.sections.keyInfo, 'keyInfo', 'violet')}</div>` : ''}
-                            ${isGrid || this.currentFilter === 'speech' ? `<div class="${isGrid ? 'md:col-span-2' : ''}">${this.generateSpeechCardHTML(topic.sections.speech)}</div>` : ''}
+                            ${isGrid || this.currentFilter === 'speech' ? `<div>${this.generateSpeechCardHTML(topic.sections.speech)}</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -646,11 +735,11 @@
                                 <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-[11px] uppercase tracking-wide font-black transition-colors shadow-sm">
                                     <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir Link
                                 </a>
-                                ` : `<span class="text-[11px] text-slate-400 italic">Sin enlace</span>`}
+                                ` : `<span class="text-[11px] text-slate-400 italic">Sin enlace asociado</span>`}
                             </div>
                             
-                            <button onclick="app.editItemLink('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-blue-500 rounded-lg transition-colors flex items-center gap-1 text-[11px] font-medium" title="Editar enlace">
-                                <i data-lucide="link" class="w-3.5 h-3.5"></i> ${item.link && item.link.trim() !== '' ? 'Editar' : 'Añadir'}
+                            <button onclick="app.editItemLink('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg transition-all flex items-center gap-1.5 text-[11px] font-bold" title="Añadir/Editar enlace">
+                                <i data-lucide="link" class="w-3.5 h-3.5"></i> ${item.link && item.link.trim() !== '' ? 'Editar' : 'Añadir Enlace'}
                             </button>
                         </div>
 
@@ -673,11 +762,11 @@
                             </div>
                             <span class="text-xs font-bold px-3 py-1 rounded-full bg-white ${c.text} shadow-sm border border-white/50">${items.length}</span>
                         </div>
-                        <div class="flex-1 p-5 overflow-y-auto max-h-[400px] custom-scrollbar bg-slate-50/30">
+                        <div class="flex-1 p-5 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
                             ${itemsHTML}
-                            <button onclick="app.addItem('${sectionKey}')" class="w-full py-3.5 border-2 border-dashed rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all border-slate-200 text-slate-400 hover:border-slate-300 ${c.btnHov}">
+                            <button onclick="app.addItem('${sectionKey}')" class="w-full py-4 border-2 border-dashed rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all border-slate-200 text-slate-400 hover:border-slate-300 ${c.btnHov}">
                                 <i data-lucide="plus" class="w-4 h-4"></i>
-                                <span>Añadir ítem</span>
+                                <span>Añadir un nuevo requisito</span>
                             </button>
                         </div>
                     </div>
@@ -725,7 +814,7 @@
                                 <input type="text" placeholder="Buscar por título de guión..." value="${this.speechSearchTerm}" oninput="app.searchSpeeches(this.value)" class="w-full pl-9 pr-4 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all placeholder-emerald-300 text-emerald-800">
                             </div>
                         </div>
-                        <div class="flex-1 p-6 overflow-y-auto custom-scrollbar bg-slate-50/30">
+                        <div class="flex-1 p-6 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
                             ${itemsHTML}
                             <button onclick="app.addItem('speech')" class="w-full py-4 border-2 border-dashed rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-inner mt-2">
                                 <i data-lucide="plus" class="w-5 h-5"></i>
