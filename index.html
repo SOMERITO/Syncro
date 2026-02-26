@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.3 (Cloud)</title>
+    <title>Syncro v5.4 (Cloud)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -85,20 +85,18 @@
                 </div>
 
                 <div class="flex flex-1 overflow-hidden relative -mx-2 bg-slate-50/50 rounded-xl border border-slate-100">
-                    <div id="topicsList" class="flex-1 overflow-y-auto custom-scrollbar px-2 pb-20 scroll-smooth">
-                        </div>
+                    <div id="topicsList" class="flex-1 overflow-y-auto custom-scrollbar px-2 pb-20 scroll-smooth"></div>
                 </div>
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.3 (Estable)</p>
+                    <p>Cloud Edition v5.4 (Segura)</p>
                 </div>
             </div>
         </aside>
 
         <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50/50">
-            <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth">
-                </div>
+            <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth"></div>
         </main>
     </div>
 
@@ -120,7 +118,6 @@
     </div>
 
     <script>
-        // --- Aplicación ---
         const app = {
             binId: '69a0a424ae596e708f4d1b47',
             apiKey: '$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm',
@@ -135,13 +132,12 @@
             modalCallback: null,
 
             init() {
-                // Try-catch para evitar errores si el navegador bloquea cookies/localStorage
                 try {
                     const savedSidebar = localStorage.getItem('syncro_sidebar_open');
                     if (savedSidebar !== null) {
                         this.isSidebarOpen = savedSidebar === 'true';
                     }
-                } catch(e) { console.warn("Memoria local no disponible"); }
+                } catch(e) {}
                 
                 const sidebar = document.getElementById('sidebar');
                 if(!this.isSidebarOpen && sidebar) {
@@ -154,7 +150,6 @@
                 this.loadFromCloud(); 
             },
 
-            // --- Lógica de la Nube (JSONbin) ---
             updateSyncUI(status, textOverride) {
                 const light = document.getElementById('syncLight');
                 const text = document.getElementById('syncText');
@@ -183,43 +178,67 @@
                     
                     if (response.ok) {
                         const data = await response.json();
-                        if (data.record && data.record.temas) {
+                        if (data.record && data.record.temas && Array.isArray(data.record.temas)) {
                             
-                            // Mapeo blindado para evitar errores si hay datos vacíos o antiguos
+                            // Blindaje de desinfección de datos
                             this.topics = data.record.temas.map(t => {
-                                if (!t.sections) t.sections = {};
-                                if (!t.sections.complianceValidator) t.sections.complianceValidator = [];
-                                if (!t.sections.keyInfo) t.sections.keyInfo = [];
-                                if (!t.sections.speech) t.sections.speech = [];
+                                if (typeof t !== 'object' || t === null) return null;
                                 
-                                // Fusión segura de validador y compliance antiguos
-                                if (t.sections.validator && Array.isArray(t.sections.validator)) {
+                                t.id = t.id ? String(t.id) : Date.now().toString();
+                                t.title = t.title || 'Tema sin título';
+                                t.link = t.link || '';
+                                t.lastModified = t.lastModified || Date.now();
+                                
+                                if (typeof t.sections !== 'object' || t.sections === null) {
+                                    t.sections = {};
+                                }
+                                
+                                // Forzar Arrays siempre
+                                if (!Array.isArray(t.sections.complianceValidator)) t.sections.complianceValidator = [];
+                                if (!Array.isArray(t.sections.keyInfo)) t.sections.keyInfo = [];
+                                if (!Array.isArray(t.sections.speech)) t.sections.speech = [];
+                                
+                                // Migración de datos segura
+                                if (Array.isArray(t.sections.validator)) {
                                     t.sections.complianceValidator.push(...t.sections.validator);
-                                    delete t.sections.validator;
                                 }
-                                if (t.sections.compliance && Array.isArray(t.sections.compliance)) {
-                                    t.sections.complianceValidator.push(...t.sections.compliance);
-                                    delete t.sections.compliance;
-                                }
-
-                                if (typeof t.link === 'undefined') t.link = '';
+                                delete t.sections.validator;
                                 
-                                // Asegurar link en ítems
-                                ['complianceValidator', 'keyInfo'].forEach(sec => {
-                                    t.sections[sec] = t.sections[sec].map(item => {
-                                        if (typeof item.link === 'undefined') item.link = '';
-                                        return item;
-                                    });
-                                });
+                                if (Array.isArray(t.sections.compliance)) {
+                                    t.sections.complianceValidator.push(...t.sections.compliance);
+                                }
+                                delete t.sections.compliance;
+
+                                const sanitizeItem = (item) => {
+                                    if (typeof item !== 'object' || item === null) return { id: Date.now().toString(), text: '', link: '' };
+                                    return {
+                                        id: item.id ? String(item.id) : Date.now().toString(),
+                                        text: item.text || '',
+                                        link: item.link || ''
+                                    };
+                                };
+
+                                const sanitizeSpeech = (item) => {
+                                    if (typeof item !== 'object' || item === null) return { id: Date.now().toString(), title: '', text: '' };
+                                    return {
+                                        id: item.id ? String(item.id) : Date.now().toString(),
+                                        title: item.title || '',
+                                        text: item.text || ''
+                                    };
+                                };
+
+                                t.sections.complianceValidator = t.sections.complianceValidator.map(sanitizeItem);
+                                t.sections.keyInfo = t.sections.keyInfo.map(sanitizeItem);
+                                t.sections.speech = t.sections.speech.map(sanitizeSpeech);
 
                                 return t;
-                            });
+                            }).filter(t => t !== null);
 
                             this.sortTopics();
                             
                             try {
                                 const savedTopicId = localStorage.getItem('syncro_topic_id');
-                                if (savedTopicId && this.topics.some(t => t.id === savedTopicId)) {
+                                if (savedTopicId && this.topics.some(t => String(t.id) === savedTopicId)) {
                                     this.selectedTopicId = savedTopicId;
                                 }
                             } catch(e) {}
@@ -267,7 +286,6 @@
                 }
             },
 
-            // --- Lógica de Interfaz y Modal ---
             setupKeyboardShortcuts() {
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
@@ -358,7 +376,6 @@
                 }, 300); 
             },
 
-            // --- Lógica de Datos ---
             sortTopics() {
                 this.topics.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
             },
@@ -400,7 +417,7 @@
             },
 
             selectTopic(id) {
-                this.selectedTopicId = id;
+                this.selectedTopicId = String(id);
                 try { localStorage.setItem('syncro_topic_id', this.selectedTopicId); } catch(e) {}
                 
                 this.currentFilter = 'all';
@@ -420,9 +437,9 @@
 
             deleteTopic(id, event) {
                 event.stopPropagation();
-                this.topics = this.topics.filter(t => t.id !== id);
-                if (this.selectedTopicId === id && this.topics.length > 0) {
-                    this.selectedTopicId = this.topics[0].id;
+                this.topics = this.topics.filter(t => String(t.id) !== String(id));
+                if (String(this.selectedTopicId) === String(id) && this.topics.length > 0) {
+                    this.selectedTopicId = String(this.topics[0].id);
                     try { localStorage.setItem('syncro_topic_id', this.selectedTopicId); } catch(e) {}
                 } else if (this.topics.length === 0) {
                     this.selectedTopicId = null;
@@ -434,7 +451,7 @@
             },
 
             updateTitle(newTitle) {
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
+                const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
                 if(topic) {
                     topic.title = newTitle;
                     topic.lastModified = Date.now();
@@ -445,7 +462,7 @@
             },
 
             editTopicLink() {
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
+                const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
                 if(topic) {
                     this.openModal("Enlace General del Tema", topic.link, (newLink) => {
                         topic.link = newLink;
@@ -457,7 +474,7 @@
             },
 
             addItem(section) {
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
+                const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
                 if (section === 'speech') {
                     topic.sections[section].push({ id: Date.now().toString(), title: '', text: '' });
                 } else {
@@ -468,8 +485,8 @@
             },
 
             updateItem(section, id, text) {
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
-                const item = topic.sections[section].find(i => i.id === id);
+                const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
+                const item = topic.sections[section].find(i => String(i.id) === String(id));
                 if(item) {
                     item.text = text;
                     topic.lastModified = Date.now();
@@ -478,8 +495,8 @@
             },
 
             editItemLink(section, id) {
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
-                const item = topic.sections[section].find(i => i.id === id);
+                const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
+                const item = topic.sections[section].find(i => String(i.id) === String(id));
                 if(item) {
                     this.openModal("Añadir Botón de Enlace", item.link, (newLink) => {
                         item.link = newLink;
@@ -491,8 +508,8 @@
             },
 
             updateSpeechTitle(id, title) {
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
-                const item = topic.sections.speech.find(i => i.id === id);
+                const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
+                const item = topic.sections.speech.find(i => String(i.id) === String(id));
                 if(item) {
                     item.title = title;
                     topic.lastModified = Date.now();
@@ -501,8 +518,8 @@
             },
 
             deleteItem(section, id) {
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
-                topic.sections[section] = topic.sections[section].filter(i => i.id !== id);
+                const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
+                topic.sections[section] = topic.sections[section].filter(i => String(i.id) !== String(id));
                 this.renderMain();
                 this.scheduleSave(); 
             },
@@ -533,7 +550,6 @@
                 });
             },
 
-            // --- Renderizado Visual ---
             renderSidebar() {
                 const list = document.getElementById('topicsList');
                 const filtered = this.topics.filter(t => (t.title || '').toLowerCase().includes(this.searchTerm));
@@ -556,11 +572,12 @@
                     html += `<div class="space-y-1.5 px-1">`;
                     
                     grouped[letter].forEach(topic => {
+                        const isSelected = String(this.selectedTopicId) === String(topic.id);
                         html += `
-                            <div onclick="app.selectTopic('${topic.id}')" class="group flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all relative overflow-hidden ${this.selectedTopicId === topic.id ? 'bg-indigo-100/50 text-indigo-700 shadow-sm ring-1 ring-indigo-200 z-10' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}">
-                                ${this.selectedTopicId === topic.id ? '<div class="absolute left-0 top-3 bottom-3 w-1 bg-indigo-500 rounded-r-full"></div>' : ''}
+                            <div onclick="app.selectTopic('${topic.id}')" class="group flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all relative overflow-hidden ${isSelected ? 'bg-indigo-100/50 text-indigo-700 shadow-sm ring-1 ring-indigo-200 z-10' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}">
+                                ${isSelected ? '<div class="absolute left-0 top-3 bottom-3 w-1 bg-indigo-500 rounded-r-full"></div>' : ''}
                                 <div class="flex items-center gap-3 overflow-hidden pl-2 w-full">
-                                    <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 ${this.selectedTopicId === topic.id ? 'text-indigo-500' : 'text-slate-400 group-hover:text-slate-500'}"></i>
+                                    <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 ${isSelected ? 'text-indigo-500' : 'text-slate-400 group-hover:text-slate-500'}"></i>
                                     <span class="font-semibold truncate text-[13px] leading-tight">${topic.title || 'Sin Título'}</span>
                                 </div>
                                 <button onclick="app.deleteTopic('${topic.id}', event)" class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100 text-red-400 shrink-0 ml-1">
@@ -577,161 +594,174 @@
             },
 
             renderMain() {
-                const container = document.getElementById('mainContent');
-                const topic = this.topics.find(t => t.id === this.selectedTopicId);
+                try {
+                    const container = document.getElementById('mainContent');
+                    const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
 
-                // --- PANTALLA DE INICIO ---
-                if (!topic) {
-                    container.innerHTML = `
-                        <div class="flex-1 flex flex-col items-center justify-center min-h-full max-w-5xl mx-auto w-full py-10">
-                            
-                            <div class="text-center mb-16 slide-up">
-                                <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-200/50">
-                                    <i data-lucide="infinity" class="w-12 h-12 text-white"></i>
+                    if (!topic) {
+                        container.innerHTML = `
+                            <div class="flex-1 flex flex-col items-center justify-center min-h-full max-w-5xl mx-auto w-full py-10">
+                                <div class="text-center mb-16 slide-up">
+                                    <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-200/50">
+                                        <i data-lucide="infinity" class="w-12 h-12 text-white"></i>
+                                    </div>
+                                    <h1 class="text-4xl md:text-6xl font-black text-slate-800 mb-5 tracking-tight">Bienvenido a <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500">Syncro</span></h1>
+                                    <p class="text-lg md:text-xl font-medium text-slate-500 max-w-3xl mx-auto leading-relaxed">Tu ecosistema inteligente para la gestión de llamadas, validación de requisitos e información importante de cada tema.</p>
                                 </div>
-                                <h1 class="text-4xl md:text-6xl font-black text-slate-800 mb-5 tracking-tight">Bienvenido a <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500">Syncro</span></h1>
-                                <p class="text-lg md:text-xl font-medium text-slate-500 max-w-3xl mx-auto leading-relaxed">Tu ecosistema inteligente para la gestión de llamadas, validación de requisitos e información importante de cada tema.</p>
-                            </div>
 
-                            <div class="w-full relative slide-up" style="animation-delay: 0.1s">
-                                <h3 class="text-center font-bold text-slate-400 uppercase tracking-widest text-sm mb-10">¿Qué puedes hacer aquí?</h3>
+                                <div class="w-full relative slide-up" style="animation-delay: 0.1s">
+                                    <h3 class="text-center font-bold text-slate-400 uppercase tracking-widest text-sm mb-10">¿Qué puedes hacer aquí?</h3>
+                                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                                        <div class="hidden lg:block absolute top-1/2 left-10 right-10 h-0.5 bg-gradient-to-r from-indigo-100 via-emerald-100 to-indigo-100 -z-10 -translate-y-1/2"></div>
+
+                                        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                            <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 text-indigo-600 group-hover:scale-110 transition-transform">
+                                                <i data-lucide="folder-tree" class="w-6 h-6"></i>
+                                            </div>
+                                            <h4 class="font-bold text-slate-800 text-lg mb-2">Organización A-Z</h4>
+                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Crea temas en el panel izquierdo. Se ordenarán automáticamente alfabéticamente.</p>
+                                            <div class="flex items-center gap-2 text-xs font-bold text-indigo-500 bg-indigo-50 px-3 py-1.5 rounded-lg w-max">
+                                                <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i> Panel lateral
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                            <div class="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-4 text-sky-600 group-hover:scale-110 transition-transform">
+                                                <i data-lucide="filter" class="w-6 h-6"></i>
+                                            </div>
+                                            <h4 class="font-bold text-slate-800 text-lg mb-2">Filtros Rápidos</h4>
+                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Filtra la información entre Requisitos (Validador) o Información Clave.</p>
+                                            <div class="flex items-center gap-2 text-xs font-bold text-sky-500 bg-sky-50 px-3 py-1.5 rounded-lg w-max">
+                                                <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i> Botones superiores
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                            <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4 text-emerald-600 group-hover:scale-110 transition-transform">
+                                                <i data-lucide="link" class="w-6 h-6"></i>
+                                            </div>
+                                            <h4 class="font-bold text-slate-800 text-lg mb-2">Links Dinámicos</h4>
+                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Agrega URLs largas a cada ítem o tema. Se convertirán en botones para un clic.</p>
+                                            <div class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg w-max">
+                                                <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Botón interactivo
+                                            </div>
+                                        </div>
+
+                                        <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                            <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 text-amber-600 group-hover:scale-110 transition-transform">
+                                                <i data-lucide="cloud" class="w-6 h-6"></i>
+                                            </div>
+                                            <h4 class="font-bold text-slate-800 text-lg mb-2">Auto-Guardado</h4>
+                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">No te preocupes por guardar o refrescar. Todo se sincroniza y tu lugar se recuerda.</p>
+                                            <div class="flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1.5 rounded-lg w-max">
+                                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Luz superior
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                                 
-                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
-                                    <div class="hidden lg:block absolute top-1/2 left-10 right-10 h-0.5 bg-gradient-to-r from-indigo-100 via-emerald-100 to-indigo-100 -z-10 -translate-y-1/2"></div>
+                                <button onclick="app.focusSearch()" class="mt-16 px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/20 hover:bg-indigo-600 hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all slide-up" style="animation-delay: 0.3s">
+                                    Empezar a trabajar
+                                </button>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                        return;
+                    }
 
-                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
-                                        <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 text-indigo-600 group-hover:scale-110 transition-transform">
-                                            <i data-lucide="folder-tree" class="w-6 h-6"></i>
-                                        </div>
-                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Organización A-Z</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">Crea temas en el panel izquierdo. Se ordenarán automáticamente alfabéticamente.</p>
-                                        <div class="flex items-center gap-2 text-xs font-bold text-indigo-500 bg-indigo-50 px-3 py-1.5 rounded-lg w-max">
-                                            <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i> Panel lateral
-                                        </div>
+                    const filterOptions = [
+                        { id: 'all', label: 'Todos', icon: 'layout-grid' },
+                        { id: 'complianceValidator', label: 'Cumplimiento / Validador', icon: 'check-square' },
+                        { id: 'keyInfo', label: 'Inform. Importante', icon: 'lightbulb' },
+                        { id: 'speech', label: 'Speech / Guiones', icon: 'mic' }
+                    ];
+
+                    const filtersHTML = filterOptions.map(f => `
+                        <button onclick="app.setFilter('${f.id}')" 
+                            class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${
+                            this.currentFilter === f.id 
+                                ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform -translate-y-0.5' 
+                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                            }">
+                            <i data-lucide="${f.icon}" class="w-4 h-4"></i>
+                            <span>${f.label}</span>
+                        </button>
+                    `).join('');
+
+                    const gridClasses = 'grid-cols-1 max-w-5xl mx-auto w-full';
+                    const hasTopicLink = (topic.link || '').trim() !== '';
+
+                    container.innerHTML = `
+                        <div class="max-w-7xl mx-auto space-y-8 pb-20 w-full">
+                            <div class="flex flex-col gap-4 max-w-5xl mx-auto w-full">
+                                <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
+                                    <span class="font-medium cursor-pointer hover:text-indigo-600 transition-colors" onclick="app.goHome()">Inicio</span>
+                                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                                    <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs uppercase tracking-wider shadow-sm">Edición Activa</span>
+                                </div>
+                                
+                                <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
+                                    <div class="relative group flex-1 w-full">
+                                        <input type="text" value="${topic.title || ''}" oninput="app.updateTitle(this.value)" class="text-4xl lg:text-5xl font-black text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-slate-300 w-full tracking-tight" placeholder="Título del Tema">
                                     </div>
-
-                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
-                                        <div class="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-4 text-sky-600 group-hover:scale-110 transition-transform">
-                                            <i data-lucide="filter" class="w-6 h-6"></i>
-                                        </div>
-                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Filtros Rápidos</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">Filtra la información entre Requisitos (Validador) o Información Clave.</p>
-                                        <div class="flex items-center gap-2 text-xs font-bold text-sky-500 bg-sky-50 px-3 py-1.5 rounded-lg w-max">
-                                            <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i> Botones superiores
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
-                                        <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4 text-emerald-600 group-hover:scale-110 transition-transform">
-                                            <i data-lucide="link" class="w-6 h-6"></i>
-                                        </div>
-                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Links Dinámicos</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">Agrega URLs largas a cada ítem o tema. Se convertirán en botones para un clic.</p>
-                                        <div class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg w-max">
-                                            <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Botón interactivo
-                                        </div>
-                                    </div>
-
-                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
-                                        <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 text-amber-600 group-hover:scale-110 transition-transform">
-                                            <i data-lucide="cloud" class="w-6 h-6"></i>
-                                        </div>
-                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Auto-Guardado</h4>
-                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">No te preocupes por guardar o refrescar. Todo se sincroniza y tu lugar se recuerda.</p>
-                                        <div class="flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1.5 rounded-lg w-max">
-                                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Luz superior
-                                        </div>
+                                    
+                                    <div class="flex items-center shrink-0 pt-2">
+                                        ${hasTopicLink ? `
+                                            <div class="flex items-center gap-2">
+                                                <a href="${topic.link.startsWith('http') ? topic.link : 'https://' + topic.link}" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-200">
+                                                    <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Enlace Principal
+                                                </a>
+                                                <button onclick="app.editTopicLink()" class="p-2.5 text-slate-400 hover:text-indigo-600 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl transition-all shadow-sm" title="Editar enlace">
+                                                    <i data-lucide="pencil" class="w-4 h-4"></i>
+                                                </button>
+                                            </div>
+                                        ` : `
+                                            <button onclick="app.editTopicLink()" class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-dashed border-slate-300 text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 rounded-xl text-sm font-bold transition-all">
+                                                <i data-lucide="plus" class="w-4 h-4"></i> Añadir Enlace Principal
+                                            </button>
+                                        `}
                                     </div>
                                 </div>
+                                
+                                <div class="flex items-center gap-3 text-slate-500">
+                                    <div class="h-px w-10 bg-slate-300"></div>
+                                    <p class="text-sm font-medium flex items-center gap-2">
+                                        <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
+                                        <span>Modificado: ${new Date(topic.lastModified).toLocaleDateString()}</span>
+                                    </p>
+                                </div>
                             </div>
-                            
-                            <button onclick="app.focusSearch()" class="mt-16 px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/20 hover:bg-indigo-600 hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all slide-up" style="animation-delay: 0.3s">
-                                Empezar a trabajar
-                            </button>
 
+                            <div class="flex flex-wrap gap-3 max-w-5xl mx-auto w-full slide-up" style="animation-delay: 0.1s">
+                                ${filtersHTML}
+                            </div>
+
+                            <div class="grid ${gridClasses} gap-8 slide-up" style="animation-delay: 0.2s">
+                                ${this.currentFilter === 'all' || this.currentFilter === 'complianceValidator' ? `<div>${this.generateStandardCardHTML('Cumplimiento / Validador', 'check-square', topic.sections.complianceValidator || [], 'complianceValidator', 'sky')}</div>` : ''}
+                                ${this.currentFilter === 'all' || this.currentFilter === 'keyInfo' ? `<div>${this.generateStandardCardHTML('Información Importante', 'lightbulb', topic.sections.keyInfo || [], 'keyInfo', 'violet')}</div>` : ''}
+                                ${this.currentFilter === 'all' || this.currentFilter === 'speech' ? `<div>${this.generateSpeechCardHTML(topic.sections.speech || [])}</div>` : ''}
+                            </div>
                         </div>
                     `;
                     lucide.createIcons();
-                    return;
+
+                } catch (error) {
+                    console.error("Error al renderizar el contenido principal:", error);
+                    const container = document.getElementById('mainContent');
+                    if (container) {
+                        container.innerHTML = `
+                            <div class="flex-1 flex flex-col items-center justify-center p-10 h-full">
+                                <div class="bg-red-50 text-red-600 p-8 rounded-3xl max-w-lg w-full text-center border border-red-100 shadow-sm">
+                                    <i data-lucide="shield-alert" class="w-12 h-12 mx-auto mb-4 opacity-80"></i>
+                                    <h2 class="text-2xl font-bold mb-2">Tema Protegido</h2>
+                                    <p class="text-sm font-medium opacity-90 mb-6">Hubo un pequeño choque leyendo el formato de este tema. Intenta hacer clic en otro tema y vuelve a regresar a este.</p>
+                                    <button onclick="app.goHome()" class="px-6 py-2 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors">Volver al inicio</button>
+                                </div>
+                            </div>
+                        `;
+                        lucide.createIcons();
+                    }
                 }
-
-                // --- PANTALLA DE EDICIÓN DEL TEMA ---
-                const filterOptions = [
-                    { id: 'all', label: 'Todos', icon: 'layout-grid' },
-                    { id: 'complianceValidator', label: 'Cumplimiento / Validador', icon: 'check-square' },
-                    { id: 'keyInfo', label: 'Inform. Importante', icon: 'lightbulb' },
-                    { id: 'speech', label: 'Speech / Guiones', icon: 'mic' }
-                ];
-
-                const filtersHTML = filterOptions.map(f => `
-                    <button onclick="app.setFilter('${f.id}')" 
-                        class="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-bold transition-all border ${
-                        this.currentFilter === f.id 
-                            ? 'bg-indigo-600 text-white border-indigo-600 shadow-md transform -translate-y-0.5' 
-                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
-                        }">
-                        <i data-lucide="${f.icon}" class="w-4 h-4"></i>
-                        <span>${f.label}</span>
-                    </button>
-                `).join('');
-
-                const gridClasses = 'grid-cols-1 max-w-5xl mx-auto w-full';
-                const hasTopicLink = (topic.link || '').trim() !== '';
-
-                container.innerHTML = `
-                    <div class="max-w-7xl mx-auto space-y-8 pb-20 w-full">
-                        
-                        <div class="flex flex-col gap-4 max-w-5xl mx-auto w-full">
-                            <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                                <span class="font-medium cursor-pointer hover:text-indigo-600 transition-colors" onclick="app.goHome()">Inicio</span>
-                                <i data-lucide="chevron-right" class="w-4 h-4"></i>
-                                <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs uppercase tracking-wider shadow-sm">Edición Activa</span>
-                            </div>
-                            
-                            <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
-                                <div class="relative group flex-1 w-full">
-                                    <input type="text" value="${topic.title || ''}" oninput="app.updateTitle(this.value)" class="text-4xl lg:text-5xl font-black text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-slate-300 w-full tracking-tight" placeholder="Título del Tema">
-                                </div>
-                                
-                                <div class="flex items-center shrink-0 pt-2">
-                                    ${hasTopicLink ? `
-                                        <div class="flex items-center gap-2">
-                                            <a href="${topic.link.startsWith('http') ? topic.link : 'https://' + topic.link}" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-200">
-                                                <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Enlace Principal
-                                            </a>
-                                            <button onclick="app.editTopicLink()" class="p-2.5 text-slate-400 hover:text-indigo-600 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl transition-all shadow-sm" title="Editar enlace">
-                                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                                            </button>
-                                        </div>
-                                    ` : `
-                                        <button onclick="app.editTopicLink()" class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-dashed border-slate-300 text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 rounded-xl text-sm font-bold transition-all">
-                                            <i data-lucide="plus" class="w-4 h-4"></i> Añadir Enlace Principal
-                                        </button>
-                                    `}
-                                </div>
-                            </div>
-                            
-                            <div class="flex items-center gap-3 text-slate-500">
-                                <div class="h-px w-10 bg-slate-300"></div>
-                                <p class="text-sm font-medium flex items-center gap-2">
-                                    <i data-lucide="clock" class="w-3.5 h-3.5 text-slate-400"></i>
-                                    <span>Modificado: ${new Date(topic.lastModified).toLocaleDateString()}</span>
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="flex flex-wrap gap-3 max-w-5xl mx-auto w-full slide-up" style="animation-delay: 0.1s">
-                            ${filtersHTML}
-                        </div>
-
-                        <div class="grid ${gridClasses} gap-8 slide-up" style="animation-delay: 0.2s">
-                            ${isGrid || this.currentFilter === 'complianceValidator' ? `<div>${this.generateStandardCardHTML('Cumplimiento / Validador', 'check-square', topic.sections.complianceValidator || [], 'complianceValidator', 'sky')}</div>` : ''}
-                            ${isGrid || this.currentFilter === 'keyInfo' ? `<div>${this.generateStandardCardHTML('Información Importante', 'lightbulb', topic.sections.keyInfo || [], 'keyInfo', 'violet')}</div>` : ''}
-                            ${isGrid || this.currentFilter === 'speech' ? `<div>${this.generateSpeechCardHTML(topic.sections.speech || [])}</div>` : ''}
-                        </div>
-                    </div>
-                `;
-                lucide.createIcons();
             },
 
             generateStandardCardHTML(title, icon, items, sectionKey, color) {
@@ -848,7 +878,6 @@
             }
         };
 
-        // Iniciar la aplicación
         document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
 </body>
