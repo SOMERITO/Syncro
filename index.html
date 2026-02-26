@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.2 (Cloud)</title>
+    <title>Syncro v5.3 (Cloud)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -90,8 +90,8 @@
                 </div>
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
-                    <i data-lucide="cloud-check" class="w-4 h-4 text-indigo-500"></i>
-                    <p>Cloud Edition v5.2</p>
+                    <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
+                    <p>Cloud Edition v5.3 (Estable)</p>
                 </div>
             </div>
         </aside>
@@ -135,15 +135,16 @@
             modalCallback: null,
 
             init() {
-                // Recuperar memoria a corto plazo
-                const savedSidebar = localStorage.getItem('syncro_sidebar_open');
-                if (savedSidebar !== null) {
-                    this.isSidebarOpen = savedSidebar === 'true';
-                }
+                // Try-catch para evitar errores si el navegador bloquea cookies/localStorage
+                try {
+                    const savedSidebar = localStorage.getItem('syncro_sidebar_open');
+                    if (savedSidebar !== null) {
+                        this.isSidebarOpen = savedSidebar === 'true';
+                    }
+                } catch(e) { console.warn("Memoria local no disponible"); }
                 
-                // Aplicar estado del sidebar inmediatamente
                 const sidebar = document.getElementById('sidebar');
-                if(!this.isSidebarOpen) {
+                if(!this.isSidebarOpen && sidebar) {
                     sidebar.classList.remove('sidebar-open');
                     sidebar.classList.add('sidebar-closed');
                 }
@@ -184,23 +185,44 @@
                         const data = await response.json();
                         if (data.record && data.record.temas) {
                             
+                            // Mapeo blindado para evitar errores si hay datos vacíos o antiguos
                             this.topics = data.record.temas.map(t => {
-                                if (!t.sections.complianceValidator) {
-                                    t.sections.complianceValidator = [];
-                                    if (t.sections.validator) { t.sections.complianceValidator.push(...t.sections.validator); delete t.sections.validator; }
-                                    if (t.sections.compliance) { t.sections.complianceValidator.push(...t.sections.compliance); delete t.sections.compliance; }
+                                if (!t.sections) t.sections = {};
+                                if (!t.sections.complianceValidator) t.sections.complianceValidator = [];
+                                if (!t.sections.keyInfo) t.sections.keyInfo = [];
+                                if (!t.sections.speech) t.sections.speech = [];
+                                
+                                // Fusión segura de validador y compliance antiguos
+                                if (t.sections.validator && Array.isArray(t.sections.validator)) {
+                                    t.sections.complianceValidator.push(...t.sections.validator);
+                                    delete t.sections.validator;
                                 }
+                                if (t.sections.compliance && Array.isArray(t.sections.compliance)) {
+                                    t.sections.complianceValidator.push(...t.sections.compliance);
+                                    delete t.sections.compliance;
+                                }
+
                                 if (typeof t.link === 'undefined') t.link = '';
+                                
+                                // Asegurar link en ítems
+                                ['complianceValidator', 'keyInfo'].forEach(sec => {
+                                    t.sections[sec] = t.sections[sec].map(item => {
+                                        if (typeof item.link === 'undefined') item.link = '';
+                                        return item;
+                                    });
+                                });
+
                                 return t;
                             });
 
                             this.sortTopics();
                             
-                            // Recuperar tema donde nos quedamos
-                            const savedTopicId = localStorage.getItem('syncro_topic_id');
-                            if (savedTopicId && this.topics.some(t => t.id === savedTopicId)) {
-                                this.selectedTopicId = savedTopicId;
-                            }
+                            try {
+                                const savedTopicId = localStorage.getItem('syncro_topic_id');
+                                if (savedTopicId && this.topics.some(t => t.id === savedTopicId)) {
+                                    this.selectedTopicId = savedTopicId;
+                                }
+                            } catch(e) {}
                         }
                         this.updateSyncUI('synced');
                     } else {
@@ -245,18 +267,16 @@
                 }
             },
 
-            // --- Lógica de Interfaz, Modal y Teclado ---
+            // --- Lógica de Interfaz y Modal ---
             setupKeyboardShortcuts() {
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
-                        // Si el modal está abierto, ciérralo primero
                         const modal = document.getElementById('linkModal');
                         if (!modal.classList.contains('pointer-events-none')) {
                             this.closeModal();
                             return;
                         }
                         
-                        // Si no, cierra el panel
                         if (this.isSidebarOpen) {
                             this.toggleSidebar();
                         }
@@ -306,7 +326,7 @@
 
             toggleSidebar() {
                 this.isSidebarOpen = !this.isSidebarOpen;
-                localStorage.setItem('syncro_sidebar_open', this.isSidebarOpen); // Guardar memoria
+                try { localStorage.setItem('syncro_sidebar_open', this.isSidebarOpen); } catch(e) {}
                 
                 const sidebar = document.getElementById('sidebar');
                 if(this.isSidebarOpen) {
@@ -320,7 +340,7 @@
 
             goHome() {
                 this.selectedTopicId = null;
-                localStorage.removeItem('syncro_topic_id'); // Borrar memoria
+                try { localStorage.removeItem('syncro_topic_id'); } catch(e) {}
                 this.renderSidebar();
                 this.renderMain();
             },
@@ -340,11 +360,11 @@
 
             // --- Lógica de Datos ---
             sortTopics() {
-                this.topics.sort((a, b) => a.title.localeCompare(b.title));
+                this.topics.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
             },
 
             filterTopics(term) {
-                this.searchTerm = term.toLowerCase();
+                this.searchTerm = (term || '').toLowerCase();
                 this.renderSidebar();
             },
 
@@ -365,7 +385,7 @@
                 
                 this.sortTopics();
                 this.selectedTopicId = newId;
-                localStorage.setItem('syncro_topic_id', this.selectedTopicId); // Guardar memoria
+                try { localStorage.setItem('syncro_topic_id', this.selectedTopicId); } catch(e) {}
                 
                 this.currentFilter = 'all';
                 this.speechSearchTerm = '';
@@ -381,7 +401,7 @@
 
             selectTopic(id) {
                 this.selectedTopicId = id;
-                localStorage.setItem('syncro_topic_id', this.selectedTopicId); // Guardar memoria
+                try { localStorage.setItem('syncro_topic_id', this.selectedTopicId); } catch(e) {}
                 
                 this.currentFilter = 'all';
                 this.speechSearchTerm = '';
@@ -403,10 +423,10 @@
                 this.topics = this.topics.filter(t => t.id !== id);
                 if (this.selectedTopicId === id && this.topics.length > 0) {
                     this.selectedTopicId = this.topics[0].id;
-                    localStorage.setItem('syncro_topic_id', this.selectedTopicId);
+                    try { localStorage.setItem('syncro_topic_id', this.selectedTopicId); } catch(e) {}
                 } else if (this.topics.length === 0) {
                     this.selectedTopicId = null;
-                    localStorage.removeItem('syncro_topic_id');
+                    try { localStorage.removeItem('syncro_topic_id'); } catch(e) {}
                 }
                 this.renderSidebar();
                 this.renderMain();
@@ -500,13 +520,12 @@
             },
 
             searchSpeeches(term) {
-                this.speechSearchTerm = term;
-                const termLower = term.toLowerCase();
+                this.speechSearchTerm = (term || '').toLowerCase();
                 const speechItems = document.querySelectorAll('.speech-item');
                 
                 speechItems.forEach(item => {
                     const titleInput = item.querySelector('.speech-title-input').value.toLowerCase();
-                    if (titleInput.includes(termLower)) {
+                    if (titleInput.includes(this.speechSearchTerm)) {
                         item.style.display = 'block';
                     } else {
                         item.style.display = 'none';
@@ -517,11 +536,11 @@
             // --- Renderizado Visual ---
             renderSidebar() {
                 const list = document.getElementById('topicsList');
-                const filtered = this.topics.filter(t => t.title.toLowerCase().includes(this.searchTerm));
+                const filtered = this.topics.filter(t => (t.title || '').toLowerCase().includes(this.searchTerm));
                 
                 const grouped = {};
                 filtered.forEach(topic => {
-                    let letter = topic.title.charAt(0).toUpperCase();
+                    let letter = (topic.title || '#').charAt(0).toUpperCase();
                     letter = letter.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
                     if (!/[A-Z]/.test(letter)) letter = '#';
                     
@@ -542,7 +561,7 @@
                                 ${this.selectedTopicId === topic.id ? '<div class="absolute left-0 top-3 bottom-3 w-1 bg-indigo-500 rounded-r-full"></div>' : ''}
                                 <div class="flex items-center gap-3 overflow-hidden pl-2 w-full">
                                     <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 ${this.selectedTopicId === topic.id ? 'text-indigo-500' : 'text-slate-400 group-hover:text-slate-500'}"></i>
-                                    <span class="font-semibold truncate text-[13px] leading-tight">${topic.title}</span>
+                                    <span class="font-semibold truncate text-[13px] leading-tight">${topic.title || 'Sin Título'}</span>
                                 </div>
                                 <button onclick="app.deleteTopic('${topic.id}', event)" class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100 text-red-400 shrink-0 ml-1">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
@@ -656,8 +675,8 @@
                     </button>
                 `).join('');
 
-                // TODO OCUPA TODA LA FILA AL 100%
                 const gridClasses = 'grid-cols-1 max-w-5xl mx-auto w-full';
+                const hasTopicLink = (topic.link || '').trim() !== '';
 
                 container.innerHTML = `
                     <div class="max-w-7xl mx-auto space-y-8 pb-20 w-full">
@@ -671,11 +690,11 @@
                             
                             <div class="flex flex-col md:flex-row md:items-start justify-between gap-4">
                                 <div class="relative group flex-1 w-full">
-                                    <input type="text" value="${topic.title}" oninput="app.updateTitle(this.value)" class="text-4xl lg:text-5xl font-black text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-slate-300 w-full tracking-tight" placeholder="Título del Tema">
+                                    <input type="text" value="${topic.title || ''}" oninput="app.updateTitle(this.value)" class="text-4xl lg:text-5xl font-black text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-slate-300 w-full tracking-tight" placeholder="Título del Tema">
                                 </div>
                                 
                                 <div class="flex items-center shrink-0 pt-2">
-                                    ${topic.link && topic.link.trim() !== '' ? `
+                                    ${hasTopicLink ? `
                                         <div class="flex items-center gap-2">
                                             <a href="${topic.link.startsWith('http') ? topic.link : 'https://' + topic.link}" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-200">
                                                 <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Enlace Principal
@@ -706,9 +725,9 @@
                         </div>
 
                         <div class="grid ${gridClasses} gap-8 slide-up" style="animation-delay: 0.2s">
-                            ${isGrid || this.currentFilter === 'complianceValidator' ? `<div>${this.generateStandardCardHTML('Cumplimiento / Validador', 'check-square', topic.sections.complianceValidator, 'complianceValidator', 'sky')}</div>` : ''}
-                            ${isGrid || this.currentFilter === 'keyInfo' ? `<div>${this.generateStandardCardHTML('Información Importante', 'lightbulb', topic.sections.keyInfo, 'keyInfo', 'violet')}</div>` : ''}
-                            ${isGrid || this.currentFilter === 'speech' ? `<div>${this.generateSpeechCardHTML(topic.sections.speech)}</div>` : ''}
+                            ${isGrid || this.currentFilter === 'complianceValidator' ? `<div>${this.generateStandardCardHTML('Cumplimiento / Validador', 'check-square', topic.sections.complianceValidator || [], 'complianceValidator', 'sky')}</div>` : ''}
+                            ${isGrid || this.currentFilter === 'keyInfo' ? `<div>${this.generateStandardCardHTML('Información Importante', 'lightbulb', topic.sections.keyInfo || [], 'keyInfo', 'violet')}</div>` : ''}
+                            ${isGrid || this.currentFilter === 'speech' ? `<div>${this.generateSpeechCardHTML(topic.sections.speech || [])}</div>` : ''}
                         </div>
                     </div>
                 `;
@@ -722,16 +741,18 @@
                 };
                 const c = colorMap[color];
 
-                let itemsHTML = items.map(item => `
+                let itemsHTML = items.map(item => {
+                    const hasLink = (item.link || '').trim() !== '';
+                    return `
                     <div class="group relative rounded-2xl border ${c.itemBorder} ${c.itemBg} p-4 mb-4 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-col gap-2">
                         
                         <textarea oninput="app.updateItem('${sectionKey}', '${item.id}', this.value)" 
                             class="w-full text-sm font-medium text-slate-700 bg-transparent border-none focus:outline-none resize-none leading-relaxed" 
-                            rows="${Math.max(2, Math.ceil(item.text.length / 50))}" placeholder="Escribe aquí...">${item.text}</textarea>
+                            rows="${Math.max(2, Math.ceil((item.text || '').length / 50))}" placeholder="Escribe aquí...">${item.text || ''}</textarea>
                         
                         <div class="flex items-center justify-between border-t ${c.itemBorder} pt-2 mt-1">
                             <div>
-                                ${item.link && item.link.trim() !== '' ? `
+                                ${hasLink ? `
                                 <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-[11px] uppercase tracking-wide font-black transition-colors shadow-sm">
                                     <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir Link
                                 </a>
@@ -739,7 +760,7 @@
                             </div>
                             
                             <button onclick="app.editItemLink('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg transition-all flex items-center gap-1.5 text-[11px] font-bold" title="Añadir/Editar enlace">
-                                <i data-lucide="link" class="w-3.5 h-3.5"></i> ${item.link && item.link.trim() !== '' ? 'Editar' : 'Añadir Enlace'}
+                                <i data-lucide="link" class="w-3.5 h-3.5"></i> ${hasLink ? 'Editar' : 'Añadir Enlace'}
                             </button>
                         </div>
 
@@ -749,7 +770,8 @@
                             </button>
                         </div>
                     </div>
-                `).join('');
+                    `;
+                }).join('');
 
                 return `
                     <div class="flex flex-col h-full bg-white rounded-3xl border ${c.border} shadow-sm overflow-hidden card-hover">
@@ -775,7 +797,7 @@
 
             generateSpeechCardHTML(items) {
                 let itemsHTML = items.map(item => {
-                    const isHidden = this.speechSearchTerm && !((item.title || '').toLowerCase().includes(this.speechSearchTerm.toLowerCase())) ? 'display: none;' : '';
+                    const isHidden = this.speechSearchTerm && !((item.title || '').toLowerCase().includes(this.speechSearchTerm)) ? 'display: none;' : '';
                     
                     return `
                     <div class="speech-item group relative rounded-2xl border border-emerald-100 bg-emerald-50/30 p-5 mb-6 shadow-sm hover:shadow-md hover:bg-white transition-all" style="${isHidden}">
@@ -783,7 +805,7 @@
                         
                         <textarea oninput="app.updateItem('speech', '${item.id}', this.value)" 
                             class="w-full text-base font-medium text-slate-700 italic bg-transparent border-none focus:outline-none resize-none leading-relaxed" 
-                            rows="${Math.max(2, Math.ceil(item.text.length / 50))}" placeholder="Escribe el desarrollo del guión aquí...">${item.text}</textarea>
+                            rows="${Math.max(2, Math.ceil((item.text || '').length / 50))}" placeholder="Escribe el desarrollo del guión aquí...">${item.text || ''}</textarea>
                         
                         <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-emerald-100">
                             <button onclick="app.copyText(this.parentElement.previousElementSibling.value, this)" class="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Copiar Guión">
