@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SpeechTracker v4.0 (Cloud)</title>
+    <title>Syncro v5.0 (Cloud)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -20,8 +20,8 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
 
-        .fade-in { animation: fadeIn 0.3s ease-in-out forwards; }
-        .slide-up { animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
         @keyframes fadeIn {
             from { opacity: 0; }
@@ -29,7 +29,7 @@
         }
         
         @keyframes slideUp {
-            from { opacity: 0; transform: translateY(20px); }
+            from { opacity: 0; transform: translateY(30px); }
             to { opacity: 1; transform: translateY(0); }
         }
 
@@ -39,7 +39,6 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
         }
 
-        /* Sidebar behavior */
         #sidebar {
             transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1), min-width 0.3s cubic-bezier(0.4, 0, 0.2, 1), transform 0.3s ease;
         }
@@ -50,14 +49,14 @@
 <body class="flex flex-col h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
 
     <header class="bg-white border-b border-slate-200 h-16 flex items-center px-4 shrink-0 z-30 relative shadow-sm">
-        <button onclick="app.toggleSidebar()" class="p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-100" title="Alternar panel">
+        <button onclick="app.toggleSidebar()" class="p-2 rounded-xl hover:bg-slate-100 text-slate-600 transition-colors focus:outline-none focus:ring-2 focus:ring-indigo-100" title="Alternar panel (ESC)">
             <i data-lucide="menu" class="w-6 h-6"></i>
         </button>
-        <div class="flex items-center gap-3 text-indigo-900 font-extrabold text-xl tracking-tight ml-4">
-            <div class="p-1.5 bg-indigo-600 rounded-lg text-white shadow-md">
-                <i data-lucide="layout" class="w-5 h-5"></i>
+        <div class="flex items-center gap-3 text-indigo-900 font-extrabold text-xl tracking-tight ml-4 cursor-pointer" onclick="app.goHome()">
+            <div class="p-1.5 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg text-white shadow-md shadow-indigo-200">
+                <i data-lucide="infinity" class="w-5 h-5"></i>
             </div>
-            <span>SpeechTracker</span>
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-indigo-600">Syncro</span>
         </div>
         
         <div class="ml-6 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
@@ -68,29 +67,37 @@
 
     <div class="flex flex-1 overflow-hidden relative">
         <aside id="sidebar" class="sidebar-open bg-white border-r border-slate-200 flex flex-col z-20 shadow-xl relative shrink-0">
-            <div class="p-5 flex flex-col h-full bg-gradient-to-b from-white to-slate-50">
-                <button onclick="app.addTopic()" class="w-full flex items-center justify-center gap-2 bg-slate-900 text-white p-4 rounded-2xl font-bold text-sm transition-all shadow-xl hover:bg-slate-800 hover:-translate-y-0.5 mb-8 group">
-                    <i data-lucide="plus" class="w-5 h-5 transition-transform group-hover:rotate-90"></i>
-                    <span>Nuevo Tema</span>
-                </button>
-
-                <div class="relative mb-6 group">
-                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
-                    <input type="text" id="searchInput" placeholder="Buscar temas..." oninput="app.filterTopics(this.value)" class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+            <div class="pt-5 px-5 flex flex-col h-full bg-gradient-to-b from-white to-slate-50">
+                
+                <div class="flex gap-2 mb-6 shrink-0">
+                    <button onclick="app.goHome()" class="flex items-center justify-center p-4 bg-slate-100 text-slate-600 rounded-2xl hover:bg-slate-200 hover:text-indigo-600 transition-all shadow-sm" title="Ir al Inicio">
+                        <i data-lucide="home" class="w-5 h-5"></i>
+                    </button>
+                    <button onclick="app.addTopic()" class="flex-1 flex items-center justify-center gap-2 bg-slate-900 text-white p-4 rounded-2xl font-bold text-sm transition-all shadow-xl hover:bg-slate-800 hover:-translate-y-0.5 group">
+                        <i data-lucide="plus" class="w-5 h-5 transition-transform group-hover:rotate-90"></i>
+                        <span>Nuevo Tema</span>
+                    </button>
                 </div>
 
-                <div id="topicsList" class="space-y-2 overflow-y-auto flex-1 pr-2 custom-scrollbar">
-                    </div>
+                <div class="relative mb-4 group shrink-0">
+                    <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400"></i>
+                    <input type="text" id="searchInput" placeholder="Buscar temas (Ctrl+F)..." oninput="app.filterTopics(this.value)" class="w-full pl-11 pr-4 py-3 bg-white border border-slate-200 rounded-2xl text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all">
+                </div>
+
+                <div class="flex flex-1 overflow-hidden relative -mx-2 bg-slate-50/50 rounded-xl border border-slate-100">
+                    <div id="topicsList" class="flex-1 overflow-y-auto custom-scrollbar px-2 pb-20 scroll-smooth">
+                        </div>
+                </div>
                 
-                <div class="mt-6 pt-6 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2">
+                <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="cloud-check" class="w-4 h-4 text-indigo-500"></i>
-                    <p>Cloud Edition v4.0</p>
+                    <p>Cloud Edition v5.0</p>
                 </div>
             </div>
         </aside>
 
         <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50/50">
-            <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in">
+            <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth">
                 </div>
         </main>
     </div>
@@ -98,32 +105,29 @@
     <script>
         // --- Aplicación ---
         const app = {
-            // Credenciales de JSONbin
             binId: '69a0a424ae596e708f4d1b47',
             apiKey: '$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm',
             
             topics: [],
-            selectedTopicId: null,
+            selectedTopicId: null, // Null por defecto para mostrar la pantalla de bienvenida
             searchTerm: '',
             speechSearchTerm: '',
             isSidebarOpen: true,
             currentFilter: 'all',
-            saveTimeout: null, // Temporizador para no saturar la API
+            saveTimeout: null, 
 
             init() {
                 lucide.createIcons();
                 this.setupKeyboardShortcuts();
-                this.loadFromCloud(); // Cargar datos al iniciar
+                this.loadFromCloud(); 
             },
 
             // --- Lógica de la Nube (JSONbin) ---
-            
             updateSyncUI(status, textOverride) {
                 const light = document.getElementById('syncLight');
                 const text = document.getElementById('syncText');
                 if (!light || !text) return;
 
-                // Reiniciar clases de la luz
                 light.className = 'w-2 h-2 rounded-full transition-colors duration-300'; 
                 
                 if (status === 'synced') {
@@ -149,9 +153,9 @@
                         const data = await response.json();
                         if (data.record && data.record.temas) {
                             this.topics = data.record.temas;
-                            if(this.topics.length > 0) {
-                                this.selectedTopicId = this.topics[0].id;
-                            }
+                            this.sortTopics();
+                            // Ya no seleccionamos automáticamente el primer tema, 
+                            // así forzamos la vista de bienvenida (Welcome Screen).
                         }
                         this.updateSyncUI('synced');
                     } else {
@@ -167,14 +171,12 @@
                 this.renderMain();
             },
 
-            // El temporizador que espera a que dejes de escribir
             scheduleSave() {
                 this.updateSyncUI('saving');
                 clearTimeout(this.saveTimeout);
-                
                 this.saveTimeout = setTimeout(() => {
                     this.saveToCloud();
-                }, 1500); // Espera 1.5 segundos después de tu última acción
+                }, 1500); 
             },
 
             async saveToCloud() {
@@ -198,8 +200,7 @@
                 }
             },
 
-            // --- Resto de la lógica ---
-
+            // --- Lógica de Interfaz y Teclado ---
             setupKeyboardShortcuts() {
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && this.isSidebarOpen) {
@@ -233,6 +234,17 @@
                 }
             },
 
+            goHome() {
+                this.selectedTopicId = null;
+                this.renderSidebar();
+                this.renderMain();
+            },
+
+            // --- Lógica de Datos ---
+            sortTopics() {
+                this.topics.sort((a, b) => a.title.localeCompare(b.title));
+            },
+
             filterTopics(term) {
                 this.searchTerm = term.toLowerCase();
                 this.renderSidebar();
@@ -251,6 +263,8 @@
                     lastModified: Date.now(),
                     sections: { validator: [], compliance: [], keyInfo: [], speech: [] }
                 });
+                
+                this.sortTopics();
                 this.selectedTopicId = newId;
                 this.currentFilter = 'all';
                 this.speechSearchTerm = '';
@@ -261,7 +275,7 @@
                 
                 this.renderSidebar();
                 this.renderMain();
-                this.scheduleSave(); // GUARDAR
+                this.scheduleSave(); 
             },
 
             selectTopic(id) {
@@ -278,7 +292,6 @@
                 if(window.innerWidth < 1024 && this.isSidebarOpen) {
                     this.toggleSidebar();
                 }
-
                 this.renderMain();
             },
 
@@ -292,7 +305,7 @@
                 }
                 this.renderSidebar();
                 this.renderMain();
-                this.scheduleSave(); // GUARDAR
+                this.scheduleSave(); 
             },
 
             updateTitle(newTitle) {
@@ -300,8 +313,9 @@
                 if(topic) {
                     topic.title = newTitle;
                     topic.lastModified = Date.now();
+                    this.sortTopics();
                     this.renderSidebar();
-                    this.scheduleSave(); // GUARDAR
+                    this.scheduleSave(); 
                 }
             },
 
@@ -310,10 +324,10 @@
                 if (section === 'speech') {
                     topic.sections[section].push({ id: Date.now().toString(), title: '', text: '' });
                 } else {
-                    topic.sections[section].push({ id: Date.now().toString(), text: '' });
+                    topic.sections[section].push({ id: Date.now().toString(), text: '', link: '' });
                 }
                 this.renderMain();
-                this.scheduleSave(); // GUARDAR
+                this.scheduleSave(); 
             },
 
             updateItem(section, id, text) {
@@ -322,7 +336,33 @@
                 if(item) {
                     item.text = text;
                     topic.lastModified = Date.now();
-                    this.scheduleSave(); // GUARDAR
+                    this.scheduleSave(); 
+                }
+            },
+
+            updateItemLink(section, id, link, inputElement) {
+                const topic = this.topics.find(t => t.id === this.selectedTopicId);
+                const item = topic.sections[section].find(i => i.id === id);
+                if(item) {
+                    item.link = link;
+                    topic.lastModified = Date.now();
+                    this.scheduleSave(); 
+                    
+                    const container = inputElement.parentElement;
+                    let btn = container.querySelector('.btn-abrir-link');
+                    
+                    if (link.trim() !== '') {
+                        const href = link.startsWith('http') ? link : 'https://' + link;
+                        if (btn) {
+                            btn.href = href;
+                        } else {
+                            const btnHtml = `<a href="${href}" target="_blank" class="btn-abrir-link shrink-0 flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-[11px] uppercase tracking-wide font-black transition-colors shadow-sm ml-auto"><i data-lucide="external-link" class="w-3 h-3"></i>Abrir</a>`;
+                            inputElement.insertAdjacentHTML('afterend', btnHtml);
+                            lucide.createIcons();
+                        }
+                    } else if (btn) {
+                        btn.remove();
+                    }
                 }
             },
 
@@ -332,7 +372,7 @@
                 if(item) {
                     item.title = title;
                     topic.lastModified = Date.now();
-                    this.scheduleSave(); // GUARDAR
+                    this.scheduleSave(); 
                 }
             },
 
@@ -340,7 +380,7 @@
                 const topic = this.topics.find(t => t.id === this.selectedTopicId);
                 topic.sections[section] = topic.sections[section].filter(i => i.id !== id);
                 this.renderMain();
-                this.scheduleSave(); // GUARDAR
+                this.scheduleSave(); 
             },
 
             copyText(text, btnElement) {
@@ -370,22 +410,46 @@
                 });
             },
 
+            // --- Renderizado Visual ---
             renderSidebar() {
                 const list = document.getElementById('topicsList');
                 const filtered = this.topics.filter(t => t.title.toLowerCase().includes(this.searchTerm));
                 
-                list.innerHTML = filtered.map(topic => `
-                    <div onclick="app.selectTopic('${topic.id}')" class="group flex items-center justify-between p-4 rounded-2xl cursor-pointer transition-all relative overflow-hidden ${this.selectedTopicId === topic.id ? 'bg-white text-indigo-700 shadow-md ring-1 ring-indigo-100 z-10' : 'text-slate-600 hover:bg-white hover:shadow-sm hover:text-slate-900'}">
-                        ${this.selectedTopicId === topic.id ? '<div class="absolute left-0 top-3 bottom-3 w-1.5 bg-indigo-500 rounded-r-full"></div>' : ''}
-                        <div class="flex items-center gap-3.5 overflow-hidden pl-3">
-                            <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 ${this.selectedTopicId === topic.id ? 'text-indigo-500' : 'text-slate-400 group-hover:text-slate-500'}"></i>
-                            <span class="font-semibold truncate text-sm">${topic.title}</span>
-                        </div>
-                        <button onclick="app.deleteTopic('${topic.id}', event)" class="p-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50 text-red-400">
-                            <i data-lucide="trash-2" class="w-4 h-4"></i>
-                        </button>
-                    </div>
-                `).join('');
+                const grouped = {};
+                filtered.forEach(topic => {
+                    let letter = topic.title.charAt(0).toUpperCase();
+                    letter = letter.normalize("NFD").replace(/[\u0300-\u036f]/g, ""); 
+                    if (!/[A-Z]/.test(letter)) letter = '#';
+                    
+                    if (!grouped[letter]) grouped[letter] = [];
+                    grouped[letter].push(topic);
+                });
+
+                const sortedLetters = Object.keys(grouped).sort();
+                
+                let html = '';
+                sortedLetters.forEach(letter => {
+                    html += `<div class="text-[11px] font-black text-slate-400 px-3 pt-5 pb-2 sticky top-0 bg-slate-50/90 backdrop-blur-sm z-10 uppercase">${letter}</div>`;
+                    html += `<div class="space-y-1.5 px-1">`;
+                    
+                    grouped[letter].forEach(topic => {
+                        html += `
+                            <div onclick="app.selectTopic('${topic.id}')" class="group flex items-center justify-between p-3.5 rounded-xl cursor-pointer transition-all relative overflow-hidden ${this.selectedTopicId === topic.id ? 'bg-indigo-100/50 text-indigo-700 shadow-sm ring-1 ring-indigo-200 z-10' : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'}">
+                                ${this.selectedTopicId === topic.id ? '<div class="absolute left-0 top-3 bottom-3 w-1 bg-indigo-500 rounded-r-full"></div>' : ''}
+                                <div class="flex items-center gap-3 overflow-hidden pl-2 w-full">
+                                    <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 ${this.selectedTopicId === topic.id ? 'text-indigo-500' : 'text-slate-400 group-hover:text-slate-500'}"></i>
+                                    <span class="font-semibold truncate text-[13px] leading-tight">${topic.title}</span>
+                                </div>
+                                <button onclick="app.deleteTopic('${topic.id}', event)" class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100 text-red-400 shrink-0 ml-1">
+                                    <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                                </button>
+                            </div>
+                        `;
+                    });
+                    html += `</div>`;
+                });
+                
+                list.innerHTML = html;
                 lucide.createIcons();
             },
 
@@ -393,20 +457,82 @@
                 const container = document.getElementById('mainContent');
                 const topic = this.topics.find(t => t.id === this.selectedTopicId);
 
+                // --- PANTALLA DE INICIO (WELCOME SCREEN / DIAGRAMA) ---
                 if (!topic) {
                     container.innerHTML = `
-                        <div class="flex-1 flex flex-col items-center justify-center text-slate-400 p-8 h-full">
-                            <div class="w-32 h-32 bg-white rounded-[2rem] flex items-center justify-center mb-8 shadow-2xl shadow-indigo-100 slide-up">
-                                <i data-lucide="layout" class="w-16 h-16 text-indigo-500"></i>
+                        <div class="flex-1 flex flex-col items-center justify-center min-h-full max-w-5xl mx-auto w-full py-10">
+                            
+                            <div class="text-center mb-16 slide-up">
+                                <div class="w-24 h-24 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-2xl shadow-indigo-200/50">
+                                    <i data-lucide="infinity" class="w-12 h-12 text-white"></i>
+                                </div>
+                                <h1 class="text-4xl md:text-6xl font-black text-slate-800 mb-5 tracking-tight">Bienvenido a <span class="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-emerald-500">Syncro</span></h1>
+                                <p class="text-lg md:text-xl font-medium text-slate-500 max-w-2xl mx-auto leading-relaxed">Tu ecosistema inteligente para la gestión de prospección, validación y admisión de estudiantes.</p>
                             </div>
-                            <h2 class="text-3xl font-black text-slate-800 mb-3 tracking-tight slide-up" style="animation-delay: 0.1s">Cargando o Sin Temas</h2>
-                            <p class="text-lg font-medium text-slate-500 max-w-md text-center leading-relaxed slide-up" style="animation-delay: 0.2s">Crea un nuevo tema para comenzar.</p>
+
+                            <div class="w-full relative slide-up" style="animation-delay: 0.1s">
+                                <h3 class="text-center font-bold text-slate-400 uppercase tracking-widest text-sm mb-10">¿Qué puedes hacer aquí?</h3>
+                                
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative">
+                                    <div class="hidden lg:block absolute top-1/2 left-10 right-10 h-0.5 bg-gradient-to-r from-indigo-100 via-emerald-100 to-indigo-100 -z-10 -translate-y-1/2"></div>
+
+                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                        <div class="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center mb-4 text-indigo-600 group-hover:scale-110 transition-transform">
+                                            <i data-lucide="folder-tree" class="w-6 h-6"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Organización A-Z</h4>
+                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">Crea temas en el panel izquierdo. Se ordenarán automáticamente alfabéticamente.</p>
+                                        <div class="flex items-center gap-2 text-xs font-bold text-indigo-500 bg-indigo-50 px-3 py-1.5 rounded-lg w-max">
+                                            <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i> Panel lateral
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                        <div class="w-12 h-12 bg-sky-50 rounded-2xl flex items-center justify-center mb-4 text-sky-600 group-hover:scale-110 transition-transform">
+                                            <i data-lucide="filter" class="w-6 h-6"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Filtros de Control</h4>
+                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">Concéntrate en lo que importa filtrando por Validador, Cumplimiento o Info clave.</p>
+                                        <div class="flex items-center gap-2 text-xs font-bold text-sky-500 bg-sky-50 px-3 py-1.5 rounded-lg w-max">
+                                            <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i> Botones superiores
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                        <div class="w-12 h-12 bg-emerald-50 rounded-2xl flex items-center justify-center mb-4 text-emerald-600 group-hover:scale-110 transition-transform">
+                                            <i data-lucide="mic" class="w-6 h-6"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Guiones / Links</h4>
+                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">Copia tus guiones en un clic y añade links externos a CRMs para abrirlos al instante.</p>
+                                        <div class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg w-max">
+                                            <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Clic y copiar
+                                        </div>
+                                    </div>
+
+                                    <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
+                                        <div class="w-12 h-12 bg-amber-50 rounded-2xl flex items-center justify-center mb-4 text-amber-600 group-hover:scale-110 transition-transform">
+                                            <i data-lucide="cloud" class="w-6 h-6"></i>
+                                        </div>
+                                        <h4 class="font-bold text-slate-800 text-lg mb-2">Auto-Guardado</h4>
+                                        <p class="text-sm text-slate-500 leading-relaxed mb-4">No te preocupes por guardar. Todo se sincroniza en la nube al instante.</p>
+                                        <div class="flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1.5 rounded-lg w-max">
+                                            <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Luz superior
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <button onclick="app.addTopic()" class="mt-16 px-10 py-4 bg-slate-900 text-white rounded-2xl font-bold text-lg shadow-xl shadow-slate-900/20 hover:bg-indigo-600 hover:shadow-indigo-600/30 hover:-translate-y-1 transition-all slide-up" style="animation-delay: 0.3s">
+                                Empezar a trabajar
+                            </button>
+
                         </div>
                     `;
                     lucide.createIcons();
                     return;
                 }
 
+                // --- PANTALLA DE EDICIÓN DEL TEMA ---
                 const filterOptions = [
                     { id: 'all', label: 'Todos', icon: 'layout-grid' },
                     { id: 'validator', label: 'Validador', icon: 'check-circle-2' },
@@ -434,7 +560,7 @@
                     <div class="max-w-7xl mx-auto space-y-8 pb-20">
                         <div class="flex flex-col gap-4">
                             <div class="flex items-center gap-2 text-sm text-slate-500 mb-1">
-                                <span class="font-medium">Temas</span>
+                                <span class="font-medium cursor-pointer hover:text-indigo-600 transition-colors" onclick="app.goHome()">Inicio</span>
                                 <i data-lucide="chevron-right" class="w-4 h-4"></i>
                                 <span class="px-3 py-1 rounded-full bg-indigo-100 text-indigo-700 font-bold text-xs uppercase tracking-wider shadow-sm">Edición Activa</span>
                             </div>
@@ -476,11 +602,25 @@
                 const c = colorMap[color];
 
                 let itemsHTML = items.map(item => `
-                    <div class="group relative rounded-2xl border ${c.itemBorder} ${c.itemBg} p-4 mb-4 shadow-sm hover:shadow-md hover:bg-white transition-all">
+                    <div class="group relative rounded-2xl border ${c.itemBorder} ${c.itemBg} p-4 mb-4 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-col gap-2">
+                        
                         <textarea oninput="app.updateItem('${sectionKey}', '${item.id}', this.value)" 
                             class="w-full text-sm font-medium text-slate-700 bg-transparent border-none focus:outline-none resize-none leading-relaxed" 
                             rows="${Math.max(2, Math.ceil(item.text.length / 50))}" placeholder="Escribe aquí...">${item.text}</textarea>
                         
+                        <div class="flex items-center gap-2 border-t ${c.itemBorder} pt-2 mt-1">
+                            <i data-lucide="link" class="w-3.5 h-3.5 text-slate-400 shrink-0"></i>
+                            <input type="url" placeholder="Añadir enlace opcional (ej. https://...)" value="${item.link || ''}" 
+                                oninput="app.updateItemLink('${sectionKey}', '${item.id}', this.value, this)"
+                                class="w-full text-xs bg-transparent border-none focus:outline-none text-slate-500 focus:text-blue-600 transition-colors placeholder-slate-300">
+                            
+                            ${item.link && item.link.trim() !== '' ? `
+                            <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="btn-abrir-link shrink-0 flex items-center gap-1 px-3 py-1 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-[11px] uppercase tracking-wide font-black transition-colors shadow-sm ml-auto">
+                                <i data-lucide="external-link" class="w-3 h-3"></i>Abrir
+                            </a>
+                            ` : ''}
+                        </div>
+
                         <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-slate-100">
                             <button onclick="app.deleteItem('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
