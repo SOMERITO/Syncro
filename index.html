@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.4 (Cloud)</title>
+    <title>Syncro v5.5 (Cloud Minimalist)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -90,7 +90,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.4 (Segura)</p>
+                    <p>Cloud Edition v5.5 (Minimalista)</p>
                 </div>
             </div>
         </aside>
@@ -108,7 +108,7 @@
                 </div>
                 <h3 id="linkModalTitle" class="text-xl font-black text-slate-800 tracking-tight">Editar Enlace</h3>
             </div>
-            <p class="text-sm text-slate-500 mb-5">Pega la URL web que deseas asociar. Se creará un botón de acceso directo automáticamente.</p>
+            <p class="text-sm text-slate-500 mb-5">Pega la URL web que deseas asociar al ítem o tema.</p>
             <input type="url" id="linkModalInput" placeholder="https://..." class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-medium text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all mb-6">
             <div class="flex justify-end gap-3">
                 <button onclick="app.closeModal()" class="px-5 py-2.5 rounded-xl text-sm font-bold text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors">Cancelar</button>
@@ -180,7 +180,6 @@
                         const data = await response.json();
                         if (data.record && data.record.temas && Array.isArray(data.record.temas)) {
                             
-                            // Blindaje de desinfección de datos
                             this.topics = data.record.temas.map(t => {
                                 if (typeof t !== 'object' || t === null) return null;
                                 
@@ -193,12 +192,10 @@
                                     t.sections = {};
                                 }
                                 
-                                // Forzar Arrays siempre
                                 if (!Array.isArray(t.sections.complianceValidator)) t.sections.complianceValidator = [];
                                 if (!Array.isArray(t.sections.keyInfo)) t.sections.keyInfo = [];
                                 if (!Array.isArray(t.sections.speech)) t.sections.speech = [];
                                 
-                                // Migración de datos segura
                                 if (Array.isArray(t.sections.validator)) {
                                     t.sections.complianceValidator.push(...t.sections.validator);
                                 }
@@ -498,7 +495,7 @@
                 const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
                 const item = topic.sections[section].find(i => String(i.id) === String(id));
                 if(item) {
-                    this.openModal("Añadir Botón de Enlace", item.link, (newLink) => {
+                    this.openModal("Añadir / Editar Enlace", item.link, (newLink) => {
                         item.link = newLink;
                         topic.lastModified = Date.now();
                         this.renderMain();
@@ -580,7 +577,7 @@
                                     <i data-lucide="file-text" class="w-4 h-4 flex-shrink-0 ${isSelected ? 'text-indigo-500' : 'text-slate-400 group-hover:text-slate-500'}"></i>
                                     <span class="font-semibold truncate text-[13px] leading-tight">${topic.title || 'Sin Título'}</span>
                                 </div>
-                                <button onclick="app.deleteTopic('${topic.id}', event)" class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100 text-red-400 shrink-0 ml-1">
+                                <button onclick="app.deleteTopic('${topic.id}', event)" class="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-100 text-red-400 shrink-0 ml-1" title="Eliminar Tema">
                                     <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
                                 </button>
                             </div>
@@ -620,9 +617,6 @@
                                             </div>
                                             <h4 class="font-bold text-slate-800 text-lg mb-2">Organización A-Z</h4>
                                             <p class="text-sm text-slate-500 leading-relaxed mb-4">Crea temas en el panel izquierdo. Se ordenarán automáticamente alfabéticamente.</p>
-                                            <div class="flex items-center gap-2 text-xs font-bold text-indigo-500 bg-indigo-50 px-3 py-1.5 rounded-lg w-max">
-                                                <i data-lucide="corner-down-left" class="w-3.5 h-3.5"></i> Panel lateral
-                                            </div>
                                         </div>
 
                                         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
@@ -630,10 +624,7 @@
                                                 <i data-lucide="filter" class="w-6 h-6"></i>
                                             </div>
                                             <h4 class="font-bold text-slate-800 text-lg mb-2">Filtros Rápidos</h4>
-                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Filtra la información entre Requisitos (Validador) o Información Clave.</p>
-                                            <div class="flex items-center gap-2 text-xs font-bold text-sky-500 bg-sky-50 px-3 py-1.5 rounded-lg w-max">
-                                                <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i> Botones superiores
-                                            </div>
+                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Filtra la información entre Requisitos o Información Clave.</p>
                                         </div>
 
                                         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
@@ -641,10 +632,7 @@
                                                 <i data-lucide="link" class="w-6 h-6"></i>
                                             </div>
                                             <h4 class="font-bold text-slate-800 text-lg mb-2">Links Dinámicos</h4>
-                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Agrega URLs largas a cada ítem o tema. Se convertirán en botones para un clic.</p>
-                                            <div class="flex items-center gap-2 text-xs font-bold text-emerald-500 bg-emerald-50 px-3 py-1.5 rounded-lg w-max">
-                                                <i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i> Botón interactivo
-                                            </div>
+                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Agrega URLs largas a cada ítem o tema. Botones de un solo clic.</p>
                                         </div>
 
                                         <div class="bg-white p-6 rounded-3xl border border-slate-100 shadow-xl shadow-slate-200/40 relative group hover:-translate-y-2 transition-transform">
@@ -652,10 +640,7 @@
                                                 <i data-lucide="cloud" class="w-6 h-6"></i>
                                             </div>
                                             <h4 class="font-bold text-slate-800 text-lg mb-2">Auto-Guardado</h4>
-                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">No te preocupes por guardar o refrescar. Todo se sincroniza y tu lugar se recuerda.</p>
-                                            <div class="flex items-center gap-2 text-xs font-bold text-amber-500 bg-amber-50 px-3 py-1.5 rounded-lg w-max">
-                                                <i data-lucide="arrow-up-right" class="w-3.5 h-3.5"></i> Luz superior
-                                            </div>
+                                            <p class="text-sm text-slate-500 leading-relaxed mb-4">Todo se sincroniza a la nube y tu lugar se guarda en automático.</p>
                                         </div>
                                     </div>
                                 </div>
@@ -705,19 +690,17 @@
                                         <input type="text" value="${topic.title || ''}" oninput="app.updateTitle(this.value)" class="text-4xl lg:text-5xl font-black text-slate-900 bg-transparent border-none focus:outline-none focus:ring-0 placeholder-slate-300 w-full tracking-tight" placeholder="Título del Tema">
                                     </div>
                                     
-                                    <div class="flex items-center shrink-0 pt-2">
+                                    <div class="flex items-center shrink-0 pt-2 gap-2">
                                         ${hasTopicLink ? `
-                                            <div class="flex items-center gap-2">
-                                                <a href="${topic.link.startsWith('http') ? topic.link : 'https://' + topic.link}" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl text-sm font-bold transition-all shadow-md shadow-indigo-200">
-                                                    <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Enlace Principal
-                                                </a>
-                                                <button onclick="app.editTopicLink()" class="p-2.5 text-slate-400 hover:text-indigo-600 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl transition-all shadow-sm" title="Editar enlace">
-                                                    <i data-lucide="pencil" class="w-4 h-4"></i>
-                                                </button>
-                                            </div>
+                                            <a href="${topic.link.startsWith('http') ? topic.link : 'https://' + topic.link}" target="_blank" class="p-3 bg-indigo-600 text-white hover:bg-indigo-700 rounded-xl transition-all shadow-md shadow-indigo-200" title="Abrir enlace principal">
+                                                <i data-lucide="external-link" class="w-5 h-5"></i>
+                                            </a>
+                                            <button onclick="app.editTopicLink()" class="p-3 text-slate-500 hover:text-indigo-600 bg-white border border-slate-200 hover:border-indigo-300 rounded-xl transition-all shadow-sm" title="Editar enlace">
+                                                <i data-lucide="pencil" class="w-5 h-5"></i>
+                                            </button>
                                         ` : `
-                                            <button onclick="app.editTopicLink()" class="flex items-center gap-2 px-5 py-2.5 bg-white border-2 border-dashed border-slate-300 text-slate-500 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 rounded-xl text-sm font-bold transition-all">
-                                                <i data-lucide="plus" class="w-4 h-4"></i> Añadir Enlace Principal
+                                            <button onclick="app.editTopicLink()" class="p-3 bg-white border-2 border-dashed border-slate-300 text-slate-400 hover:text-indigo-600 hover:border-indigo-400 hover:bg-indigo-50 rounded-xl transition-all" title="Añadir enlace principal">
+                                                <i data-lucide="link" class="w-5 h-5"></i>
                                             </button>
                                         `}
                                     </div>
@@ -747,20 +730,6 @@
 
                 } catch (error) {
                     console.error("Error al renderizar el contenido principal:", error);
-                    const container = document.getElementById('mainContent');
-                    if (container) {
-                        container.innerHTML = `
-                            <div class="flex-1 flex flex-col items-center justify-center p-10 h-full">
-                                <div class="bg-red-50 text-red-600 p-8 rounded-3xl max-w-lg w-full text-center border border-red-100 shadow-sm">
-                                    <i data-lucide="shield-alert" class="w-12 h-12 mx-auto mb-4 opacity-80"></i>
-                                    <h2 class="text-2xl font-bold mb-2">Tema Protegido</h2>
-                                    <p class="text-sm font-medium opacity-90 mb-6">Hubo un pequeño choque leyendo el formato de este tema. Intenta hacer clic en otro tema y vuelve a regresar a este.</p>
-                                    <button onclick="app.goHome()" class="px-6 py-2 bg-red-600 text-white rounded-xl font-bold text-sm hover:bg-red-700 transition-colors">Volver al inicio</button>
-                                </div>
-                            </div>
-                        `;
-                        lucide.createIcons();
-                    }
                 }
             },
 
@@ -783,18 +752,21 @@
                         <div class="flex items-center justify-between border-t ${c.itemBorder} pt-2 mt-1">
                             <div>
                                 ${hasLink ? `
-                                <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="flex items-center gap-1.5 px-3 py-1.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg text-[11px] uppercase tracking-wide font-black transition-colors shadow-sm">
-                                    <i data-lucide="external-link" class="w-3.5 h-3.5"></i> Abrir Link
+                                <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="flex items-center justify-center p-2 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-lg transition-colors shadow-sm" title="Abrir enlace">
+                                    <i data-lucide="external-link" class="w-4 h-4"></i>
                                 </a>
                                 ` : `<span class="text-[11px] text-slate-400 italic">Sin enlace asociado</span>`}
                             </div>
                             
-                            <button onclick="app.editItemLink('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg transition-all flex items-center gap-1.5 text-[11px] font-bold" title="Añadir/Editar enlace">
-                                <i data-lucide="link" class="w-3.5 h-3.5"></i> ${hasLink ? 'Editar' : 'Añadir Enlace'}
+                            <button onclick="app.editItemLink('${sectionKey}', '${item.id}')" class="p-2 text-slate-400 hover:text-indigo-600 hover:bg-white border border-transparent hover:border-slate-200 rounded-lg transition-all" title="${hasLink ? 'Editar enlace' : 'Añadir enlace'}">
+                                <i data-lucide="${hasLink ? 'pencil' : 'link'}" class="w-4 h-4"></i>
                             </button>
                         </div>
 
                         <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-slate-100">
+                            <button onclick="this.closest('.group').querySelector('textarea').focus()" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Editar texto">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
                             <button onclick="app.deleteItem('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
                                 <i data-lucide="trash-2" class="w-4 h-4"></i>
                             </button>
@@ -837,7 +809,10 @@
                             class="w-full text-base font-medium text-slate-700 italic bg-transparent border-none focus:outline-none resize-none leading-relaxed" 
                             rows="${Math.max(2, Math.ceil((item.text || '').length / 50))}" placeholder="Escribe el desarrollo del guión aquí...">${item.text || ''}</textarea>
                         
-                        <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-emerald-100">
+                        <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-emerald-100">
+                            <button onclick="this.closest('.group').querySelector('textarea').focus()" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar texto">
+                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                            </button>
                             <button onclick="app.copyText(this.parentElement.previousElementSibling.value, this)" class="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Copiar Guión">
                                 <i data-lucide="copy" class="w-4 h-4"></i>
                             </button>
