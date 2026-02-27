@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.6 (Cloud Minimalist)</title>
+    <title>Syncro v5.7 (Cloud Minimalist & Rich Text)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -44,6 +44,21 @@
         }
         .sidebar-closed { width: 0 !important; min-width: 0 !important; transform: translateX(-100%); overflow: hidden; opacity: 0; }
         .sidebar-open { width: 340px !important; min-width: 340px !important; transform: translateX(0); opacity: 1; }
+
+        /* Estilos para el texto enriquecido y el placeholder */
+        [contenteditable]:empty:before {
+            content: attr(placeholder);
+            color: #94a3b8; /* text-slate-400 */
+            pointer-events: none;
+            display: block; /* For Firefox */
+        }
+        [contenteditable] {
+            outline: none;
+            min-height: 48px;
+        }
+        [contenteditable] b, [contenteditable] strong { font-weight: 800; color: #1e293b; }
+        [contenteditable] i, [contenteditable] em { font-style: italic; }
+        [contenteditable] u { text-decoration: underline; text-underline-offset: 2px; }
     </style>
 </head>
 <body class="flex flex-col h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
@@ -90,7 +105,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.6 (Minimalista)</p>
+                    <p>Cloud Edition v5.7 (Rich Text)</p>
                 </div>
             </div>
         </aside>
@@ -481,11 +496,11 @@
                 this.scheduleSave(); 
             },
 
-            updateItem(section, id, text) {
+            updateItem(section, id, htmlContent) {
                 const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
                 const item = topic.sections[section].find(i => String(i.id) === String(id));
                 if(item) {
-                    item.text = text;
+                    item.text = htmlContent;
                     topic.lastModified = Date.now();
                     this.scheduleSave(); 
                 }
@@ -524,7 +539,7 @@
             copyText(text, btnElement) {
                 navigator.clipboard.writeText(text).then(() => {
                     const originalHTML = btnElement.innerHTML;
-                    btnElement.innerHTML = '<i data-lucide="check" class="w-4 h-4 text-emerald-500"></i>';
+                    btnElement.innerHTML = '<i data-lucide="check" class="w-5 h-5 text-emerald-500"></i>';
                     lucide.createIcons();
                     setTimeout(() => {
                         btnElement.innerHTML = originalHTML;
@@ -743,50 +758,51 @@
                 let itemsHTML = items.map(item => {
                     const hasLink = (item.link || '').trim() !== '';
                     return `
-                    <div class="group relative rounded-2xl border ${c.itemBorder} ${c.itemBg} p-4 mb-4 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-col gap-2">
+                    <div class="group relative rounded-3xl border ${c.itemBorder} ${c.itemBg} p-5 mb-5 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-col gap-3">
                         
-                        <textarea oninput="app.updateItem('${sectionKey}', '${item.id}', this.value)" 
-                            class="w-full text-sm font-medium text-slate-700 bg-transparent border-none focus:outline-none resize-none leading-relaxed pr-24" 
-                            rows="${Math.max(2, Math.ceil((item.text || '').length / 50))}" placeholder="Escribe aquí...">${item.text || ''}</textarea>
+                        <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 z-10">
+                            <button onclick="app.editItemLink('${sectionKey}', '${item.id}')" class="w-11 h-11 flex items-center justify-center bg-slate-50 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-[14px] transition-all shadow-sm border border-slate-100" title="${hasLink ? 'Editar enlace' : 'Añadir enlace'}">
+                                <i data-lucide="globe" class="w-5 h-5"></i>
+                            </button>
+                            <button onclick="this.closest('.group').querySelector('[contenteditable]').focus()" class="w-11 h-11 flex items-center justify-center bg-slate-50 hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-[14px] transition-all shadow-sm border border-slate-100" title="Editar texto">
+                                <i data-lucide="edit" class="w-5 h-5"></i>
+                            </button>
+                            <button onclick="app.deleteItem('${sectionKey}', '${item.id}')" class="w-11 h-11 flex items-center justify-center bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-[14px] transition-all shadow-sm border border-slate-100" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+
+                        <div contenteditable="true" 
+                             oninput="app.updateItem('${sectionKey}', '${item.id}', this.innerHTML)" 
+                             class="w-full text-[15px] font-medium text-slate-700 bg-transparent border-none focus:outline-none leading-relaxed pr-40 min-h-[3rem]" 
+                             placeholder="Escribe aquí... (Puedes usar Ctrl+B, Ctrl+I, Ctrl+U)">${item.text || ''}</div>
                         
                         ${hasLink ? `
-                        <div class="border-t ${c.itemBorder} pt-3 mt-1 flex justify-start">
-                            <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="flex items-center justify-center p-2.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-xl transition-colors shadow-sm" title="Abrir enlace">
-                                <i data-lucide="external-link" class="w-4 h-4"></i>
+                        <div class="border-t ${c.itemBorder} pt-4 mt-2 flex justify-start">
+                            <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="flex items-center gap-2 px-5 py-2.5 bg-blue-100 text-blue-700 hover:bg-blue-200 rounded-xl transition-colors shadow-sm font-bold text-sm" title="Abrir enlace">
+                                <i data-lucide="external-link" class="w-4 h-4"></i> Abrir Recurso
                             </a>
                         </div>
                         ` : ''}
-
-                        <div class="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-slate-100">
-                            <button onclick="app.editItemLink('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="${hasLink ? 'Editar enlace' : 'Añadir enlace'}">
-                                <i data-lucide="link" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="this.closest('.group').querySelector('textarea').focus()" class="p-1.5 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-colors" title="Editar texto">
-                                <i data-lucide="pencil" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="app.deleteItem('${sectionKey}', '${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
-                        </div>
                     </div>
                     `;
                 }).join('');
 
                 return `
-                    <div class="flex flex-col h-full bg-white rounded-3xl border ${c.border} shadow-sm overflow-hidden card-hover">
-                        <div class="px-6 py-5 border-b ${c.border} ${c.bg} flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <div class="p-2.5 rounded-2xl bg-white ${c.text} shadow-sm">
-                                    <i data-lucide="${icon}" class="w-5 h-5"></i>
+                    <div class="flex flex-col h-full bg-white rounded-[2rem] border ${c.border} shadow-sm overflow-hidden card-hover">
+                        <div class="px-7 py-6 border-b ${c.border} ${c.bg} flex items-center justify-between">
+                            <div class="flex items-center gap-4">
+                                <div class="p-3 rounded-2xl bg-white ${c.text} shadow-sm">
+                                    <i data-lucide="${icon}" class="w-6 h-6"></i>
                                 </div>
-                                <h3 class="font-bold text-lg tracking-tight ${c.text}">${title}</h3>
+                                <h3 class="font-bold text-xl tracking-tight ${c.text}">${title}</h3>
                             </div>
-                            <span class="text-xs font-bold px-3 py-1 rounded-full bg-white ${c.text} shadow-sm border border-white/50">${items.length}</span>
+                            <span class="text-sm font-bold px-4 py-1.5 rounded-full bg-white ${c.text} shadow-sm border border-white/50">${items.length}</span>
                         </div>
-                        <div class="flex-1 p-5 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
+                        <div class="flex-1 p-6 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
                             ${itemsHTML}
-                            <button onclick="app.addItem('${sectionKey}')" class="w-full py-4 border-2 border-dashed rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all border-slate-200 text-slate-400 hover:border-slate-300 ${c.btnHov}">
-                                <i data-lucide="plus" class="w-4 h-4"></i>
+                            <button onclick="app.addItem('${sectionKey}')" class="w-full py-5 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 text-base font-bold transition-all border-slate-200 text-slate-400 hover:border-slate-300 ${c.btnHov}">
+                                <i data-lucide="plus" class="w-5 h-5"></i>
                                 <span>Añadir un nuevo requisito</span>
                             </button>
                         </div>
@@ -799,48 +815,50 @@
                     const isHidden = this.speechSearchTerm && !((item.title || '').toLowerCase().includes(this.speechSearchTerm)) ? 'display: none;' : '';
                     
                     return `
-                    <div class="speech-item group relative rounded-2xl border border-emerald-100 bg-emerald-50/30 p-5 mb-6 shadow-sm hover:shadow-md hover:bg-white transition-all" style="${isHidden}">
-                        <input type="text" placeholder="Título del guión (ej. Saludo inicial)" value="${item.title || ''}" oninput="app.updateSpeechTitle('${item.id}', this.value)" class="speech-title-input w-full font-bold text-emerald-800 bg-transparent border-b border-emerald-100 focus:border-emerald-300 focus:outline-none mb-3 pb-2 placeholder-emerald-300 transition-colors pr-24">
+                    <div class="speech-item group relative rounded-3xl border border-emerald-100 bg-emerald-50/30 p-6 mb-6 shadow-sm hover:shadow-md hover:bg-white transition-all" style="${isHidden}">
                         
-                        <textarea oninput="app.updateItem('speech', '${item.id}', this.value)" 
-                            class="w-full text-base font-medium text-slate-700 italic bg-transparent border-none focus:outline-none resize-none leading-relaxed pr-24" 
-                            rows="${Math.max(2, Math.ceil((item.text || '').length / 50))}" placeholder="Escribe el desarrollo del guión aquí...">${item.text || ''}</textarea>
-                        
-                        <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1 bg-white/90 backdrop-blur-md p-1.5 rounded-xl shadow-sm border border-emerald-100">
-                            <button onclick="this.closest('.group').querySelector('textarea').focus()" class="p-1.5 text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors" title="Editar texto">
-                                <i data-lucide="pencil" class="w-4 h-4"></i>
+                        <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 z-10">
+                            <button onclick="this.closest('.group').querySelector('[contenteditable]').focus()" class="w-11 h-11 flex items-center justify-center bg-slate-50 hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-[14px] transition-all shadow-sm border border-slate-100" title="Editar texto">
+                                <i data-lucide="edit" class="w-5 h-5"></i>
                             </button>
-                            <button onclick="app.copyText(this.parentElement.previousElementSibling.value, this)" class="p-1.5 text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors" title="Copiar Guión">
-                                <i data-lucide="copy" class="w-4 h-4"></i>
+                            <button onclick="app.copyText(this.closest('.group').querySelector('[contenteditable]').innerText, this)" class="w-11 h-11 flex items-center justify-center bg-slate-50 hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-[14px] transition-all shadow-sm border border-slate-100" title="Copiar Guión (Solo texto)">
+                                <i data-lucide="copy" class="w-5 h-5"></i>
                             </button>
-                            <button onclick="app.deleteItem('speech', '${item.id}')" class="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                            <button onclick="app.deleteItem('speech', '${item.id}')" class="w-11 h-11 flex items-center justify-center bg-slate-50 hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-[14px] transition-all shadow-sm border border-slate-100" title="Eliminar">
+                                <i data-lucide="trash-2" class="w-5 h-5"></i>
                             </button>
                         </div>
+
+                        <input type="text" placeholder="Título del guión (ej. Saludo inicial)" value="${item.title || ''}" oninput="app.updateSpeechTitle('${item.id}', this.value)" class="speech-title-input w-full font-bold text-lg text-emerald-800 bg-transparent border-b border-emerald-100 focus:border-emerald-300 focus:outline-none mb-4 pb-2 placeholder-emerald-300 transition-colors pr-40">
+                        
+                        <div contenteditable="true" 
+                             oninput="app.updateItem('speech', '${item.id}', this.innerHTML)" 
+                             class="w-full text-base font-medium text-slate-700 italic bg-transparent border-none focus:outline-none leading-relaxed pr-40 min-h-[3rem]" 
+                             placeholder="Escribe el desarrollo del guión aquí... (Puedes usar Ctrl+B)">${item.text || ''}</div>
                     </div>
                     `;
                 }).join('');
 
                 return `
-                    <div class="flex flex-col h-full bg-white rounded-3xl border border-emerald-200 shadow-sm overflow-hidden card-hover">
-                        <div class="px-6 py-5 border-b border-emerald-200 bg-emerald-50 flex flex-col gap-4">
+                    <div class="flex flex-col h-full bg-white rounded-[2rem] border border-emerald-200 shadow-sm overflow-hidden card-hover">
+                        <div class="px-7 py-6 border-b border-emerald-200 bg-emerald-50 flex flex-col gap-5">
                             <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-3">
-                                    <div class="p-2.5 rounded-2xl bg-white text-emerald-600 shadow-sm">
-                                        <i data-lucide="mic" class="w-5 h-5"></i>
+                                <div class="flex items-center gap-4">
+                                    <div class="p-3 rounded-2xl bg-white text-emerald-600 shadow-sm">
+                                        <i data-lucide="mic" class="w-6 h-6"></i>
                                     </div>
                                     <h3 class="font-bold text-xl tracking-tight text-emerald-700">Speech / Guiones Estructurados</h3>
                                 </div>
-                                <span class="text-xs font-bold px-3 py-1 rounded-full bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200">${items.length}</span>
+                                <span class="text-sm font-bold px-4 py-1.5 rounded-full bg-emerald-100 text-emerald-700 shadow-sm border border-emerald-200">${items.length}</span>
                             </div>
                             <div class="relative">
-                                <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-emerald-400"></i>
-                                <input type="text" placeholder="Buscar por título de guión..." value="${this.speechSearchTerm}" oninput="app.searchSpeeches(this.value)" class="w-full pl-9 pr-4 py-2.5 bg-white border border-emerald-200 rounded-xl text-sm font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all placeholder-emerald-300 text-emerald-800">
+                                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-400"></i>
+                                <input type="text" placeholder="Buscar por título de guión..." value="${this.speechSearchTerm}" oninput="app.searchSpeeches(this.value)" class="w-full pl-11 pr-4 py-3 bg-white border border-emerald-200 rounded-xl text-base font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-400 transition-all placeholder-emerald-300 text-emerald-800">
                             </div>
                         </div>
                         <div class="flex-1 p-6 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
                             ${itemsHTML}
-                            <button onclick="app.addItem('speech')" class="w-full py-4 border-2 border-dashed rounded-2xl flex items-center justify-center gap-2 text-sm font-bold transition-all border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-inner mt-2">
+                            <button onclick="app.addItem('speech')" class="w-full py-5 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 text-base font-bold transition-all border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-inner mt-2">
                                 <i data-lucide="plus" class="w-5 h-5"></i>
                                 <span>Añadir Nuevo Bloque de Guión</span>
                             </button>
