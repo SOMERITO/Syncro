@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.10 (Cloud Minimalist & Toolbar)</title>
+    <title>Syncro v5.11 (Cloud Minimalist & Filters)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -104,7 +104,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.10 (Rich Edit)</p>
+                    <p>Cloud Edition v5.11 (Filtros)</p>
                 </div>
             </div>
         </aside>
@@ -189,6 +189,7 @@
             selectedTopicId: null,
             searchTerm: '',
             speechSearchTerm: '',
+            complianceSearchTerm: '', // Nuevo estado para el buscador de cumplimiento
             isSidebarOpen: true,
             currentFilter: 'all',
             saveTimeout: null, 
@@ -527,6 +528,7 @@
                 
                 this.currentFilter = 'all';
                 this.speechSearchTerm = '';
+                this.complianceSearchTerm = '';
                 
                 if(!this.isSidebarOpen && window.innerWidth < 768) {
                     this.toggleSidebar();
@@ -543,6 +545,7 @@
                 
                 this.currentFilter = 'all';
                 this.speechSearchTerm = '';
+                this.complianceSearchTerm = '';
                 this.renderSidebar();
                 
                 const main = document.getElementById('mainContent');
@@ -638,6 +641,21 @@
                     const titleText = item.querySelector('.speech-title-display').innerText.toLowerCase();
                     if (titleText.includes(this.speechSearchTerm)) {
                         item.style.display = 'block';
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+            },
+
+            searchCompliance(term) {
+                this.complianceSearchTerm = (term || '').toLowerCase();
+                const complianceItems = document.querySelectorAll('.compliance-item');
+                
+                complianceItems.forEach(item => {
+                    // Solo busca el texto sin formato HTML
+                    const textContent = item.querySelector('.rich-text-display').innerText.toLowerCase();
+                    if (textContent.includes(this.complianceSearchTerm)) {
+                        item.style.display = 'flex';
                     } else {
                         item.style.display = 'none';
                     }
@@ -844,8 +862,21 @@
 
                 let itemsHTML = items.map(item => {
                     const hasLink = (item.link || '').trim() !== '';
+                    let isHidden = '';
+                    let itemClass = '';
+                    
+                    if (sectionKey === 'complianceValidator') {
+                        itemClass = 'compliance-item';
+                        if (this.complianceSearchTerm) {
+                            const plainText = (item.text || '').replace(/<[^>]*>?/gm, '').toLowerCase();
+                            if (!plainText.includes(this.complianceSearchTerm)) {
+                                isHidden = 'display: none;';
+                            }
+                        }
+                    }
+
                     return `
-                    <div class="group relative rounded-3xl border ${c.itemBorder} ${c.itemBg} p-5 mb-5 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-col gap-3 min-h-[5rem]">
+                    <div class="${itemClass} group relative rounded-3xl border ${c.itemBorder} ${c.itemBg} p-5 mb-5 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-col gap-3 min-h-[5rem]" style="${isHidden}">
                         
                         <div class="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-2 z-10">
                             ${hasLink ? `
@@ -868,17 +899,41 @@
                     `;
                 }).join('');
 
+                let headerHTML = `
+                    <div class="px-7 py-6 border-b ${c.border} ${c.bg} flex items-center justify-between">
+                        <div class="flex items-center gap-4">
+                            <div class="p-3 rounded-2xl bg-white ${c.text} shadow-sm">
+                                <i data-lucide="${icon}" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="font-bold text-xl tracking-tight ${c.text}">${title}</h3>
+                        </div>
+                        <span class="text-sm font-bold px-4 py-1.5 rounded-full bg-white ${c.text} shadow-sm border border-white/50">${items.length}</span>
+                    </div>
+                `;
+
+                if (sectionKey === 'complianceValidator') {
+                    headerHTML = `
+                        <div class="px-7 py-6 border-b ${c.border} ${c.bg} flex flex-col gap-5">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-4">
+                                    <div class="p-3 rounded-2xl bg-white ${c.text} shadow-sm">
+                                        <i data-lucide="${icon}" class="w-6 h-6"></i>
+                                    </div>
+                                    <h3 class="font-bold text-xl tracking-tight ${c.text}">${title}</h3>
+                                </div>
+                                <span class="text-sm font-bold px-4 py-1.5 rounded-full bg-white ${c.text} shadow-sm border border-white/50">${items.length}</span>
+                            </div>
+                            <div class="relative">
+                                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-sky-400"></i>
+                                <input type="text" placeholder="Buscar en Cumplimiento..." value="${this.complianceSearchTerm}" oninput="app.searchCompliance(this.value)" class="w-full pl-11 pr-4 py-3 bg-white border border-sky-200 rounded-xl text-base font-medium shadow-sm focus:outline-none focus:ring-2 focus:ring-sky-500/20 focus:border-sky-400 transition-all placeholder-sky-300 text-sky-800">
+                            </div>
+                        </div>
+                    `;
+                }
+
                 return `
                     <div class="flex flex-col h-full bg-white rounded-[2rem] border ${c.border} shadow-sm overflow-hidden card-hover">
-                        <div class="px-7 py-6 border-b ${c.border} ${c.bg} flex items-center justify-between">
-                            <div class="flex items-center gap-4">
-                                <div class="p-3 rounded-2xl bg-white ${c.text} shadow-sm">
-                                    <i data-lucide="${icon}" class="w-6 h-6"></i>
-                                </div>
-                                <h3 class="font-bold text-xl tracking-tight ${c.text}">${title}</h3>
-                            </div>
-                            <span class="text-sm font-bold px-4 py-1.5 rounded-full bg-white ${c.text} shadow-sm border border-white/50">${items.length}</span>
-                        </div>
+                        ${headerHTML}
                         <div class="flex-1 p-6 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
                             ${itemsHTML}
                             <button onclick="app.addItem('${sectionKey}')" class="w-full py-5 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 text-base font-bold transition-all border-slate-200 text-slate-400 hover:border-slate-300 ${c.btnHov}">
