@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.11 (Cloud Minimalist & Filters)</title>
+    <title>Syncro v5.13 (Cloud Minimalist & Tools)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -58,6 +58,16 @@
         [contenteditable] u, .rich-text-display u { text-decoration: underline; text-underline-offset: 2px; }
         [contenteditable] ul, .rich-text-display ul { list-style-type: disc; margin-left: 1.5rem; margin-top: 0.25rem; margin-bottom: 0.25rem; }
         [contenteditable] ol, .rich-text-display ol { list-style-type: decimal; margin-left: 1.5rem; margin-top: 0.25rem; margin-bottom: 0.25rem; }
+
+        /* Ocultar spinners nativos en calculadora */
+        .custom-number-input::-webkit-outer-spin-button,
+        .custom-number-input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        .custom-number-input {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="flex flex-col h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
@@ -73,9 +83,16 @@
             <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-indigo-600">Syncro</span>
         </div>
         
-        <div class="ml-6 flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
-            <div id="syncLight" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.5)] transition-colors duration-300"></div>
-            <span id="syncText" class="text-xs font-bold text-slate-500">Conectando...</span>
+        <div class="ml-auto flex items-center gap-4">
+            <button onclick="app.openCalc()" class="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Calculadora de Descuento">
+                <i data-lucide="calculator" class="w-4 h-4 text-indigo-600"></i>
+                <span class="hidden md:inline">Calculadora</span>
+            </button>
+
+            <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200">
+                <div id="syncLight" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.5)] transition-colors duration-300"></div>
+                <span id="syncText" class="text-xs font-bold text-slate-500">Conectando...</span>
+            </div>
         </div>
     </header>
 
@@ -104,7 +121,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.11 (Filtros)</p>
+                    <p>Cloud Edition v5.13</p>
                 </div>
             </div>
         </aside>
@@ -112,6 +129,40 @@
         <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50/50">
             <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth"></div>
         </main>
+    </div>
+
+    <div id="calcModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="calcModalContent" class="bg-white p-8 rounded-[24px] shadow-2xl w-[90%] max-w-[400px] transform translate-y-8 transition-transform duration-300 relative">
+            
+            <button onclick="app.closeCalc()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors">
+                <i data-lucide="x" class="w-5 h-5"></i>
+            </button>
+
+            <div class="flex flex-col items-center mb-6">
+                <div class="w-12 h-12 bg-red-50 text-[#e63946] rounded-2xl flex items-center justify-center mb-3">
+                    <i data-lucide="calculator" class="w-6 h-6"></i>
+                </div>
+                <h2 class="text-2xl font-black text-slate-900 tracking-tight text-center">Cálculo de Dscto.</h2>
+            </div>
+            
+            <div class="mb-5">
+                <label for="calcCostoBase" class="block mb-2 font-bold text-sm text-slate-500 uppercase tracking-wider">Costo de Boleta (C<sub>b</sub>)</label>
+                <input type="number" id="calcCostoBase" placeholder="Ej: 1558.00" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#e63946] focus:ring-4 focus:ring-[#e63946]/10 transition-all custom-number-input">
+            </div>
+
+            <div class="mb-6">
+                <label for="calcDescuento" class="block mb-2 font-bold text-sm text-slate-500 uppercase tracking-wider">Monto del Descuento (D)</label>
+                <input type="number" id="calcDescuento" placeholder="Ej: 773.55" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#e63946] focus:ring-4 focus:ring-[#e63946]/10 transition-all custom-number-input">
+            </div>
+
+            <button onclick="app.calcularDescuento()" class="w-full py-4 bg-[#e63946] hover:bg-[#d62828] text-white rounded-xl text-base font-bold transition-all active:translate-y-0.5 shadow-md shadow-red-500/20 flex justify-center items-center gap-2">
+                Obtener Porcentaje
+            </button>
+
+            <div id="calcResultado" class="mt-8 p-6 bg-slate-50 rounded-2xl text-center border border-slate-100 min-h-[90px] flex flex-col items-center justify-center transition-all">
+                <span class="text-sm font-medium text-slate-400">El resultado aparecerá aquí</span>
+            </div>
+        </div>
     </div>
 
     <div id="linkModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
@@ -189,7 +240,7 @@
             selectedTopicId: null,
             searchTerm: '',
             speechSearchTerm: '',
-            complianceSearchTerm: '', // Nuevo estado para el buscador de cumplimiento
+            complianceSearchTerm: '', 
             isSidebarOpen: true,
             currentFilter: 'all',
             saveTimeout: null, 
@@ -361,6 +412,12 @@
                             this.closeItemModal();
                             return;
                         }
+
+                        const calcModal = document.getElementById('calcModal');
+                        if (!calcModal.classList.contains('pointer-events-none')) {
+                            this.closeCalc();
+                            return;
+                        }
                         
                         if (this.isSidebarOpen) {
                             this.toggleSidebar();
@@ -378,6 +435,55 @@
                 el.style.height = el.scrollHeight + 'px';
             },
 
+            /* LOGICA CALCULADORA */
+            openCalc() {
+                document.getElementById('calcCostoBase').value = '';
+                document.getElementById('calcDescuento').value = '';
+                document.getElementById('calcResultado').innerHTML = '<span class="text-sm font-medium text-slate-400">El resultado aparecerá aquí</span>';
+                
+                const modal = document.getElementById('calcModal');
+                const content = document.getElementById('calcModalContent');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-y-8');
+                
+                // Ahora el foco va directamente al costo base
+                setTimeout(() => document.getElementById('calcCostoBase').focus(), 300);
+            },
+            
+            closeCalc() {
+                const modal = document.getElementById('calcModal');
+                const content = document.getElementById('calcModalContent');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-y-8');
+            },
+
+            calcularDescuento() {
+                const valDescuento = document.getElementById('calcDescuento').value;
+                const valCostoBase = document.getElementById('calcCostoBase').value;
+                const contenedorResultado = document.getElementById('calcResultado');
+
+                const D = parseFloat(valDescuento);
+                const Cb = parseFloat(valCostoBase);
+
+                if (isNaN(D) || isNaN(Cb) || valDescuento.trim() === '' || valCostoBase.trim() === '') {
+                    contenedorResultado.innerHTML = '<span class="text-[#e63946] font-bold text-sm">Ingresa valores numéricos válidos.</span>';
+                    return;
+                }
+
+                if (Cb === 0) {
+                    contenedorResultado.innerHTML = '<span class="text-[#e63946] font-bold text-sm">El Costo de Boleta no puede ser 0.</span>';
+                    return;
+                }
+
+                const porcentaje = (D / Cb) * 100;
+
+                contenedorResultado.innerHTML = `
+                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Descuento aplicado:</span>
+                    <div class="text-[40px] font-black text-[#e63946] tracking-tight leading-none">${porcentaje.toFixed(2)}%</div>
+                `;
+            },
+
+            /* LOGICA MODALES */
             openLinkModal(title, defaultValue, callback) {
                 this.linkModalCallback = callback;
                 document.getElementById('linkModalTitle').innerText = title;
@@ -652,7 +758,6 @@
                 const complianceItems = document.querySelectorAll('.compliance-item');
                 
                 complianceItems.forEach(item => {
-                    // Solo busca el texto sin formato HTML
                     const textContent = item.querySelector('.rich-text-display').innerText.toLowerCase();
                     if (textContent.includes(this.complianceSearchTerm)) {
                         item.style.display = 'flex';
