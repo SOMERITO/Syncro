@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.15 (Dual Calculator & History)</title>
+    <title>Syncro v5.16 (Zendesk Integration)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -85,6 +85,11 @@
         
         <div class="ml-auto flex items-center gap-3">
             
+            <button onclick="app.openCausisticas()" class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Causísticas Zendesk">
+                <i data-lucide="book-open" class="w-4 h-4 text-[#E50019]"></i>
+                <span class="hidden md:inline">Causísticas</span>
+            </button>
+
             <button onclick="app.openToolsModal()" class="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all font-bold text-sm shadow-md" title="Abrir Calculadoras">
                 <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
                 <span class="hidden md:inline">Calculadoras</span>
@@ -122,7 +127,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.15</p>
+                    <p>Cloud Edition v5.16</p>
                 </div>
             </div>
         </aside>
@@ -130,6 +135,214 @@
         <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50/50">
             <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth"></div>
         </main>
+    </div>
+
+    <div id="causisticasModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="causisticasModalContent" class="bg-white p-6 md:p-8 rounded-[24px] shadow-2xl w-[95%] max-w-[700px] transform translate-y-8 transition-transform duration-300 relative max-h-[90vh] flex flex-col border-t-[6px] border-[#E50019]">
+            
+            <button onclick="app.closeCausisticas()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors z-10">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <h2 class="text-2xl font-bold text-[#333333] tracking-tight text-center mb-6">Causísticas - Zendesk Matrícula 2026-1</h2>
+            
+            <div class="flex flex-wrap gap-2 mb-6 justify-center" id="causisticasFilters">
+                <button onclick="app.setCausisticaCategory('todos', this)" class="btn-filtro bg-[#E50019] text-white border-[#E50019] shadow-md px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Todos</button>
+                <button onclick="app.setCausisticaCategory('Matrícula', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Matrícula</button>
+                <button onclick="app.setCausisticaCategory('Deudas y pagos', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Deudas</button>
+                <button onclick="app.setCausisticaCategory('Trámites', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Trámites</button>
+                <button onclick="app.setCausisticaCategory('Acceso al sistema', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Accesos</button>
+                <button onclick="app.setCausisticaCategory('Inglés (We Talk)', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Inglés</button>
+                <button onclick="app.setCausisticaCategory('Alumnos nuevos', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Nuevos</button>
+                <button onclick="app.setCausisticaCategory('Alumno Reingresos', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Reingresos</button>
+                <button onclick="app.setCausisticaCategory('Servicios UPC', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Servicios</button>
+                <button onclick="app.setCausisticaCategory('Matrícula extemporánea', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Extemporánea</button>
+                <button onclick="app.setCausisticaCategory('Me registraron una matrícula y tengo dudas', this)" class="btn-filtro bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200 px-4 py-2 border rounded-full text-[13px] font-medium transition-all">Dudas Matrícula</button>
+            </div>
+
+            <div class="relative mb-6 shrink-0">
+                <i data-lucide="search" class="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400"></i>
+                <input type="text" id="buscadorCausisticas" placeholder="Busca tu consulta por palabra clave..." oninput="app.filterCausisticas(this.value)" class="w-full pl-12 pr-4 py-4 bg-[#F5F5F5] border-2 border-[#E0E0E0] rounded-xl text-base font-medium text-[#333333] focus:outline-none focus:bg-white focus:border-[#E50019] focus:ring-4 focus:ring-[#E50019]/10 transition-all">
+            </div>
+
+            <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                <ul id="listaCausisticas" class="space-y-3 pb-4">
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.1 No tengo o no me llegó turno</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.2 Dificultades en proceso de planificación horaria</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.3 No encuentro vacantes</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.4 Mi nota no actualizada</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.5 Otros problemas con mi matrícula</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.1 Pago actual no reflejado</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.2 Tengo un bloqueo por deuda</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.3 No se aplicó cobro por crédito</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.4 No se emitió mi boleta o no figura en el sistema</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.5 Devolución de pago no realizado</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.6 Anulación de boleta</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.7 Beneficios no aplicados</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.1 Traslado interno de carrera</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.2 Matrícula alumno sin promedio ponderable</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.3 Permisos de matrículas - Dispersión de niveles</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.4 Traslado de campus</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.5 Retiro de ciclo</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.6 Retiro de módulo</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.7 Carta de permanencia</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.8 Retiro de asignatura</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.9 Reanudación de estudios</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.10 Constancias y certificados</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.11 Cambio de modalidad</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.12 Convalidación por traslado</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.13 Otros trámites</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.14 Constancia de egreso</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Acceso al sistema" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Acceso al sistema</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">4.1 Error de acceso al sistema</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Acceso al sistema" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Acceso al sistema</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">4.2 Problemas con contraseña</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.1 Bloqueo de Inglés</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.2 Cruce de horario de matrícula con curso de inglés</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.3 Problemas con Placement Test - PLT</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumnos nuevos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumnos nuevos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">6.4 No me aplicaron el descuento ofrecido</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumno Reingresos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumno Reingresos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">7.1 No me convalidan mis cursos</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumno Reingresos" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumno Reingresos</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">7.2 No me aplicaron el descuento ofrecido</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Servicios UPC" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Servicios UPC</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.1 Ceremonia de graduación</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Servicios UPC" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Servicios UPC</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.2 Servicio de campus</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.1 Quiero agregar un curso</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.2 Fui afectado por un cierre de sección</span>
+                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.3 Ya pagué y quiero matricularme</span>
+                    </li>
+
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Me registraron una matrícula y tengo dudas" onclick="app.copyCausistica(this)">
+                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Me registraron una matrícula y tengo dudas</span>
+                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.1 Deseo modificar la matrícula</span>
+                    </li>
+                </ul>
+
+                <div id="causisticasEmpty" class="hidden p-8 text-center bg-[#F5F5F5] border border-dashed border-[#E0E0E0] rounded-xl text-[#666666] font-medium">
+                    😕 No encontramos opciones para esta búsqueda o categoría.
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="toolsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
@@ -140,7 +353,6 @@
             </button>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative mt-2">
-                
                 <div class="hidden md:block absolute top-0 bottom-0 left-1/2 w-px bg-slate-200 -translate-x-1/2"></div>
                 <div class="md:hidden w-full h-px bg-slate-200 my-2"></div>
 
@@ -192,7 +404,6 @@
                         <span class="text-xs font-medium text-slate-400">El resultado aparecerá aquí</span>
                     </div>
                 </div>
-
             </div>
 
             <div class="mt-8 bg-slate-50 border border-slate-200 rounded-2xl p-5 relative">
@@ -223,7 +434,6 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -313,6 +523,10 @@
                 b1: null,
                 dscto: null
             },
+
+            // Variables para Causísticas
+            causisticaCategory: 'todos',
+            causisticaSearchTerm: '',
 
             init() {
                 try {
@@ -486,6 +700,12 @@
                             this.closeToolsModal();
                             return;
                         }
+
+                        const causisticasModal = document.getElementById('causisticasModal');
+                        if (!causisticasModal.classList.contains('pointer-events-none')) {
+                            this.closeCausisticas();
+                            return;
+                        }
                         
                         if (this.isSidebarOpen) {
                             this.toggleSidebar();
@@ -503,15 +723,92 @@
                 el.style.height = el.scrollHeight + 'px';
             },
 
+            /* LOGICA CAUSÍSTICAS */
+            openCausisticas() {
+                const modal = document.getElementById('causisticasModal');
+                const content = document.getElementById('causisticasModalContent');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-y-8');
+                setTimeout(() => document.getElementById('buscadorCausisticas').focus(), 300);
+            },
+            
+            closeCausisticas() {
+                const modal = document.getElementById('causisticasModal');
+                const content = document.getElementById('causisticasModalContent');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-y-8');
+            },
+
+            setCausisticaCategory(cat, btnElement) {
+                this.causisticaCategory = cat;
+                
+                // Actualizar estilos de los botones
+                const botones = document.querySelectorAll('#causisticasFilters .btn-filtro');
+                botones.forEach(btn => {
+                    btn.classList.remove('bg-[#E50019]', 'text-white', 'border-[#E50019]', 'shadow-md');
+                    btn.classList.add('bg-slate-100', 'text-slate-600', 'border-slate-200');
+                });
+                
+                btnElement.classList.remove('bg-slate-100', 'text-slate-600', 'border-slate-200');
+                btnElement.classList.add('bg-[#E50019]', 'text-white', 'border-[#E50019]', 'shadow-md');
+                
+                this.filterCausisticas();
+            },
+
+            filterCausisticas(term) {
+                if(term !== undefined) {
+                    this.causisticaSearchTerm = term;
+                }
+                
+                const searchText = (this.causisticaSearchTerm || '').normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                const items = document.querySelectorAll('.causistica-item');
+                let matches = 0;
+
+                items.forEach(item => {
+                    const itemCat = item.getAttribute('data-cat');
+                    const itemText = item.innerText.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+                    
+                    const matchesCategory = (this.causisticaCategory === 'todos' || itemCat === this.causisticaCategory);
+                    const matchesSearch = itemText.includes(searchText);
+
+                    if (matchesCategory && matchesSearch) {
+                        item.style.display = 'block';
+                        matches++;
+                    } else {
+                        item.style.display = 'none';
+                    }
+                });
+
+                const emptyMsg = document.getElementById('causisticasEmpty');
+                if (matches === 0) {
+                    emptyMsg.style.display = 'block';
+                } else {
+                    emptyMsg.style.display = 'none';
+                }
+            },
+
+            copyCausistica(element) {
+                const text = element.querySelector('.opcion-text').innerText;
+                navigator.clipboard.writeText(text).then(() => {
+                    const originalBg = element.style.backgroundColor;
+                    const originalBorder = element.style.borderColor;
+                    
+                    element.style.backgroundColor = '#dcfce7'; // verde claro feedback
+                    element.style.borderColor = '#86efac';
+                    
+                    setTimeout(() => {
+                        element.style.backgroundColor = originalBg;
+                        element.style.borderColor = originalBorder;
+                    }, 300);
+                });
+            },
+
             /* LOGICA CALCULADORAS COMBINADAS */
             openToolsModal() {
-                // Al abrir, NO borramos las casillas por si el usuario cerró por accidente.
                 const modal = document.getElementById('toolsModal');
                 const content = document.getElementById('toolsModalContent');
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 content.classList.remove('translate-y-8');
-                
-                // Enfocamos el primer input
                 setTimeout(() => document.getElementById('calcB1Monto').focus(), 300);
             },
             
@@ -540,7 +837,6 @@
                     <div class="text-3xl font-black text-[#0056b3] tracking-tight leading-none">S/ ${total.toFixed(2)}</div>
                 `;
 
-                // Guardar en el historial
                 this.calcHistory.b1 = `Monto ingresado: S/ ${monto.toFixed(2)} ➔ Resultado: <span class="font-bold text-[#0056b3]">S/ ${total.toFixed(2)}</span>`;
                 this.renderHistory();
             },
@@ -570,7 +866,6 @@
                     <div class="text-3xl font-black text-[#e63946] tracking-tight leading-none">${porcentaje.toFixed(2)}%</div>
                 `;
 
-                // Guardar en el historial
                 this.calcHistory.dscto = `Costo: S/ ${Cb.toFixed(2)} | Dscto: S/ ${D.toFixed(2)} ➔ Resultado: <span class="font-bold text-[#e63946]">${porcentaje.toFixed(2)}%</span>`;
                 this.renderHistory();
             },
@@ -593,23 +888,17 @@
             },
 
             clearCalcHistory() {
-                // Borrar variables del historial
                 this.calcHistory.b1 = null;
                 this.calcHistory.dscto = null;
                 
-                // Borrar inputs
                 document.getElementById('calcB1Monto').value = '';
                 document.getElementById('calcCostoBase').value = '';
                 document.getElementById('calcDescuento').value = '';
 
-                // Borrar resultados visuales principales
                 document.getElementById('calcB1Resultado').innerHTML = '<span class="text-xs font-medium text-slate-400">El resultado aparecerá aquí</span>';
                 document.getElementById('calcResultado').innerHTML = '<span class="text-xs font-medium text-slate-400">El resultado aparecerá aquí</span>';
 
-                // Actualizar cajita de historia
                 this.renderHistory();
-                
-                // Poner foco en la primera casilla para volver a empezar
                 document.getElementById('calcB1Monto').focus();
             },
 
