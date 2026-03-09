@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.14 (Cloud Minimalist & Tools)</title>
+    <title>Syncro v5.15 (Dual Calculator & History)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -85,14 +85,9 @@
         
         <div class="ml-auto flex items-center gap-3">
             
-            <button onclick="app.openCalcB1()" class="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Calculadora B1 sin Matrícula">
-                <i data-lucide="calculator" class="w-4 h-4 text-[#0056b3]"></i>
-                <span class="hidden md:inline">B1 Matrícula</span>
-            </button>
-
-            <button onclick="app.openCalc()" class="flex items-center gap-2 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Calculadora de Descuento">
-                <i data-lucide="percent" class="w-4 h-4 text-[#e63946]"></i>
-                <span class="hidden md:inline">Porcentaje</span>
+            <button onclick="app.openToolsModal()" class="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all font-bold text-sm shadow-md" title="Abrir Calculadoras">
+                <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
+                <span class="hidden md:inline">Calculadoras</span>
             </button>
 
             <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1">
@@ -127,7 +122,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.14</p>
+                    <p>Cloud Edition v5.15</p>
                 </div>
             </div>
         </aside>
@@ -137,66 +132,98 @@
         </main>
     </div>
 
-    <div id="calcB1Modal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="calcB1ModalContent" class="bg-white p-8 rounded-[24px] shadow-2xl w-[90%] max-w-[400px] transform translate-y-8 transition-transform duration-300 relative">
+    <div id="toolsModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="toolsModalContent" class="bg-white p-6 md:p-8 rounded-[32px] shadow-2xl w-[95%] max-w-[850px] transform translate-y-8 transition-transform duration-300 relative max-h-[95vh] overflow-y-auto custom-scrollbar">
             
-            <button onclick="app.closeCalcB1()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors">
-                <i data-lucide="x" class="w-5 h-5"></i>
+            <button onclick="app.closeToolsModal()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors z-10">
+                <i data-lucide="x" class="w-6 h-6"></i>
             </button>
 
-            <div class="flex flex-col items-center mb-6">
-                <div class="w-12 h-12 bg-blue-50 text-[#0056b3] rounded-2xl flex items-center justify-center mb-3">
-                    <i data-lucide="calculator" class="w-6 h-6"></i>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 relative mt-2">
+                
+                <div class="hidden md:block absolute top-0 bottom-0 left-1/2 w-px bg-slate-200 -translate-x-1/2"></div>
+                <div class="md:hidden w-full h-px bg-slate-200 my-2"></div>
+
+                <div class="flex flex-col">
+                    <div class="flex flex-col items-center mb-6">
+                        <div class="w-12 h-12 bg-blue-50 text-[#0056b3] rounded-2xl flex items-center justify-center mb-3">
+                            <i data-lucide="calculator" class="w-6 h-6"></i>
+                        </div>
+                        <h2 class="text-xl font-black text-slate-900 tracking-tight text-center">B1 sin Matrícula</h2>
+                    </div>
+                    
+                    <div class="mb-6 flex-1">
+                        <label for="calcB1Monto" class="block mb-2 font-bold text-xs text-slate-500 uppercase tracking-wider">Monto de la boleta (S/)</label>
+                        <input type="number" id="calcB1Monto" placeholder="Ej. 1500.00" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#0056b3] focus:ring-4 focus:ring-[#0056b3]/10 transition-all custom-number-input" onkeydown="if(event.key === 'Enter') app.calcularB1()">
+                    </div>
+
+                    <button onclick="app.calcularB1()" class="w-full py-3.5 bg-[#0056b3] hover:bg-[#004494] text-white rounded-xl text-sm font-bold transition-all active:translate-y-0.5 shadow-md shadow-blue-500/20">
+                        Calcular Total
+                    </button>
+
+                    <div id="calcB1Resultado" class="mt-5 p-4 bg-slate-50 rounded-xl text-center border border-slate-100 min-h-[80px] flex flex-col items-center justify-center transition-all">
+                        <span class="text-xs font-medium text-slate-400">El resultado aparecerá aquí</span>
+                    </div>
                 </div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight text-center">B1 sin Matrícula</h2>
-            </div>
-            
-            <div class="mb-6">
-                <label for="calcB1Monto" class="block mb-2 font-bold text-sm text-slate-500 uppercase tracking-wider">Monto de la boleta (S/)</label>
-                <input type="number" id="calcB1Monto" placeholder="Ej. 1500.00" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#0056b3] focus:ring-4 focus:ring-[#0056b3]/10 transition-all custom-number-input" onkeydown="if(event.key === 'Enter') app.calcularB1()">
-            </div>
 
-            <button onclick="app.calcularB1()" class="w-full py-4 bg-[#0056b3] hover:bg-[#004494] text-white rounded-xl text-base font-bold transition-all active:translate-y-0.5 shadow-md shadow-blue-500/20 flex justify-center items-center gap-2">
-                Calcular Total
-            </button>
+                <div class="flex flex-col">
+                    <div class="flex flex-col items-center mb-6">
+                        <div class="w-12 h-12 bg-red-50 text-[#e63946] rounded-2xl flex items-center justify-center mb-3">
+                            <i data-lucide="percent" class="w-6 h-6"></i>
+                        </div>
+                        <h2 class="text-xl font-black text-slate-900 tracking-tight text-center">Cálculo de Dscto.</h2>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <label for="calcCostoBase" class="block mb-2 font-bold text-xs text-slate-500 uppercase tracking-wider">Costo de Boleta (C<sub>b</sub>)</label>
+                        <input type="number" id="calcCostoBase" placeholder="Ej: 1558.00" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#e63946] focus:ring-4 focus:ring-[#e63946]/10 transition-all custom-number-input">
+                    </div>
 
-            <div id="calcB1Resultado" class="mt-8 p-6 bg-slate-50 rounded-2xl text-center border border-slate-100 min-h-[90px] flex flex-col items-center justify-center transition-all">
-                <span class="text-sm font-medium text-slate-400">El resultado aparecerá aquí</span>
-            </div>
-        </div>
-    </div>
+                    <div class="mb-6">
+                        <label for="calcDescuento" class="block mb-2 font-bold text-xs text-slate-500 uppercase tracking-wider">Monto del Descuento (D)</label>
+                        <input type="number" id="calcDescuento" placeholder="Ej: 773.55" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#e63946] focus:ring-4 focus:ring-[#e63946]/10 transition-all custom-number-input" onkeydown="if(event.key === 'Enter') app.calcularDescuento()">
+                    </div>
 
-    <div id="calcModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
-        <div id="calcModalContent" class="bg-white p-8 rounded-[24px] shadow-2xl w-[90%] max-w-[400px] transform translate-y-8 transition-transform duration-300 relative">
-            
-            <button onclick="app.closeCalc()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors">
-                <i data-lucide="x" class="w-5 h-5"></i>
-            </button>
+                    <button onclick="app.calcularDescuento()" class="w-full py-3.5 bg-[#e63946] hover:bg-[#d62828] text-white rounded-xl text-sm font-bold transition-all active:translate-y-0.5 shadow-md shadow-red-500/20">
+                        Obtener Porcentaje
+                    </button>
 
-            <div class="flex flex-col items-center mb-6">
-                <div class="w-12 h-12 bg-red-50 text-[#e63946] rounded-2xl flex items-center justify-center mb-3">
-                    <i data-lucide="percent" class="w-6 h-6"></i>
+                    <div id="calcResultado" class="mt-5 p-4 bg-slate-50 rounded-xl text-center border border-slate-100 min-h-[80px] flex flex-col items-center justify-center transition-all">
+                        <span class="text-xs font-medium text-slate-400">El resultado aparecerá aquí</span>
+                    </div>
                 </div>
-                <h2 class="text-2xl font-black text-slate-900 tracking-tight text-center">Cálculo de Dscto.</h2>
-            </div>
-            
-            <div class="mb-5">
-                <label for="calcCostoBase" class="block mb-2 font-bold text-sm text-slate-500 uppercase tracking-wider">Costo de Boleta (C<sub>b</sub>)</label>
-                <input type="number" id="calcCostoBase" placeholder="Ej: 1558.00" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#e63946] focus:ring-4 focus:ring-[#e63946]/10 transition-all custom-number-input">
+
             </div>
 
-            <div class="mb-6">
-                <label for="calcDescuento" class="block mb-2 font-bold text-sm text-slate-500 uppercase tracking-wider">Monto del Descuento (D)</label>
-                <input type="number" id="calcDescuento" placeholder="Ej: 773.55" step="0.01" class="w-full px-4 py-3.5 bg-slate-50 border-2 border-transparent rounded-xl text-slate-900 font-medium text-base focus:outline-none focus:bg-white focus:border-[#e63946] focus:ring-4 focus:ring-[#e63946]/10 transition-all custom-number-input" onkeydown="if(event.key === 'Enter') app.calcularDescuento()">
+            <div class="mt-8 bg-slate-50 border border-slate-200 rounded-2xl p-5 relative">
+                <div class="flex items-center justify-between mb-4 border-b border-slate-200 pb-3">
+                    <h4 class="font-bold text-slate-700 text-sm flex items-center gap-2">
+                        <i data-lucide="history" class="w-4 h-4 text-slate-500"></i> Registro de última consulta
+                    </h4>
+                    <button onclick="app.clearCalcHistory()" class="text-xs font-bold text-slate-400 hover:text-red-600 hover:bg-red-50 px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1 border border-transparent hover:border-red-100" title="Borrar todo el historial y calculadoras">
+                        <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Limpiar Todo
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 rounded-full bg-[#0056b3] mt-1.5"></div>
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">B1 sin Matrícula</p>
+                            <div id="historyB1Display" class="text-sm font-medium text-slate-700">Ninguna consulta aún.</div>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start gap-3">
+                        <div class="w-2 h-2 rounded-full bg-[#e63946] mt-1.5"></div>
+                        <div>
+                            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-0.5">Porcentaje Dscto.</p>
+                            <div id="historyDsctoDisplay" class="text-sm font-medium text-slate-700">Ninguna consulta aún.</div>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <button onclick="app.calcularDescuento()" class="w-full py-4 bg-[#e63946] hover:bg-[#d62828] text-white rounded-xl text-base font-bold transition-all active:translate-y-0.5 shadow-md shadow-red-500/20 flex justify-center items-center gap-2">
-                Obtener Porcentaje
-            </button>
-
-            <div id="calcResultado" class="mt-8 p-6 bg-slate-50 rounded-2xl text-center border border-slate-100 min-h-[90px] flex flex-col items-center justify-center transition-all">
-                <span class="text-sm font-medium text-slate-400">El resultado aparecerá aquí</span>
-            </div>
         </div>
     </div>
 
@@ -280,6 +307,12 @@
             currentFilter: 'all',
             saveTimeout: null, 
             linkModalCallback: null,
+
+            // Variables para el registro de calculadoras
+            calcHistory: {
+                b1: null,
+                dscto: null
+            },
 
             init() {
                 try {
@@ -448,15 +481,9 @@
                             return;
                         }
 
-                        const calcModal = document.getElementById('calcModal');
-                        if (!calcModal.classList.contains('pointer-events-none')) {
-                            this.closeCalc();
-                            return;
-                        }
-
-                        const calcB1Modal = document.getElementById('calcB1Modal');
-                        if (!calcB1Modal.classList.contains('pointer-events-none')) {
-                            this.closeCalcB1();
+                        const toolsModal = document.getElementById('toolsModal');
+                        if (!toolsModal.classList.contains('pointer-events-none')) {
+                            this.closeToolsModal();
                             return;
                         }
                         
@@ -476,69 +503,21 @@
                 el.style.height = el.scrollHeight + 'px';
             },
 
-            /* LOGICA CALCULADORA DSCTO */
-            openCalc() {
-                document.getElementById('calcCostoBase').value = '';
-                document.getElementById('calcDescuento').value = '';
-                document.getElementById('calcResultado').innerHTML = '<span class="text-sm font-medium text-slate-400">El resultado aparecerá aquí</span>';
-                
-                const modal = document.getElementById('calcModal');
-                const content = document.getElementById('calcModalContent');
+            /* LOGICA CALCULADORAS COMBINADAS */
+            openToolsModal() {
+                // Al abrir, NO borramos las casillas por si el usuario cerró por accidente.
+                const modal = document.getElementById('toolsModal');
+                const content = document.getElementById('toolsModalContent');
                 modal.classList.remove('opacity-0', 'pointer-events-none');
                 content.classList.remove('translate-y-8');
                 
-                setTimeout(() => document.getElementById('calcCostoBase').focus(), 300);
-            },
-            
-            closeCalc() {
-                const modal = document.getElementById('calcModal');
-                const content = document.getElementById('calcModalContent');
-                modal.classList.add('opacity-0', 'pointer-events-none');
-                content.classList.add('translate-y-8');
-            },
-
-            calcularDescuento() {
-                const valDescuento = document.getElementById('calcDescuento').value;
-                const valCostoBase = document.getElementById('calcCostoBase').value;
-                const contenedorResultado = document.getElementById('calcResultado');
-
-                const D = parseFloat(valDescuento);
-                const Cb = parseFloat(valCostoBase);
-
-                if (isNaN(D) || isNaN(Cb) || valDescuento.trim() === '' || valCostoBase.trim() === '') {
-                    contenedorResultado.innerHTML = '<span class="text-[#e63946] font-bold text-sm">Ingresa valores numéricos válidos.</span>';
-                    return;
-                }
-
-                if (Cb === 0) {
-                    contenedorResultado.innerHTML = '<span class="text-[#e63946] font-bold text-sm">El Costo de Boleta no puede ser 0.</span>';
-                    return;
-                }
-
-                const porcentaje = (D / Cb) * 100;
-
-                contenedorResultado.innerHTML = `
-                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Descuento aplicado:</span>
-                    <div class="text-[40px] font-black text-[#e63946] tracking-tight leading-none">${porcentaje.toFixed(2)}%</div>
-                `;
-            },
-
-            /* LOGICA CALCULADORA B1 */
-            openCalcB1() {
-                document.getElementById('calcB1Monto').value = '';
-                document.getElementById('calcB1Resultado').innerHTML = '<span class="text-sm font-medium text-slate-400">El resultado aparecerá aquí</span>';
-                
-                const modal = document.getElementById('calcB1Modal');
-                const content = document.getElementById('calcB1ModalContent');
-                modal.classList.remove('opacity-0', 'pointer-events-none');
-                content.classList.remove('translate-y-8');
-                
+                // Enfocamos el primer input
                 setTimeout(() => document.getElementById('calcB1Monto').focus(), 300);
             },
             
-            closeCalcB1() {
-                const modal = document.getElementById('calcB1Modal');
-                const content = document.getElementById('calcB1ModalContent');
+            closeToolsModal() {
+                const modal = document.getElementById('toolsModal');
+                const content = document.getElementById('toolsModalContent');
                 modal.classList.add('opacity-0', 'pointer-events-none');
                 content.classList.add('translate-y-8');
             },
@@ -550,16 +529,88 @@
                 const contenedorResultado = document.getElementById('calcB1Resultado');
 
                 if (isNaN(monto) || inputMonto.trim() === "") {
-                    contenedorResultado.innerHTML = '<span class="text-[#0056b3] font-bold text-sm">Por favor, ingrese un monto válido.</span>';
+                    contenedorResultado.innerHTML = '<span class="text-[#0056b3] font-bold text-xs text-center">Ingresa un monto válido.</span>';
                     return;
                 }
 
                 const total = monto - descuento;
 
                 contenedorResultado.innerHTML = `
-                    <span class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-1">Total a pagar:</span>
-                    <div class="text-[40px] font-black text-[#0056b3] tracking-tight leading-none">S/ ${total.toFixed(2)}</div>
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total a pagar:</span>
+                    <div class="text-3xl font-black text-[#0056b3] tracking-tight leading-none">S/ ${total.toFixed(2)}</div>
                 `;
+
+                // Guardar en el historial
+                this.calcHistory.b1 = `Monto ingresado: S/ ${monto.toFixed(2)} ➔ Resultado: <span class="font-bold text-[#0056b3]">S/ ${total.toFixed(2)}</span>`;
+                this.renderHistory();
+            },
+
+            calcularDescuento() {
+                const valDescuento = document.getElementById('calcDescuento').value;
+                const valCostoBase = document.getElementById('calcCostoBase').value;
+                const contenedorResultado = document.getElementById('calcResultado');
+
+                const D = parseFloat(valDescuento);
+                const Cb = parseFloat(valCostoBase);
+
+                if (isNaN(D) || isNaN(Cb) || valDescuento.trim() === '' || valCostoBase.trim() === '') {
+                    contenedorResultado.innerHTML = '<span class="text-[#e63946] font-bold text-xs text-center">Ingresa valores válidos.</span>';
+                    return;
+                }
+
+                if (Cb === 0) {
+                    contenedorResultado.innerHTML = '<span class="text-[#e63946] font-bold text-xs text-center">El Costo de Boleta no puede ser 0.</span>';
+                    return;
+                }
+
+                const porcentaje = (D / Cb) * 100;
+
+                contenedorResultado.innerHTML = `
+                    <span class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Descuento aplicado:</span>
+                    <div class="text-3xl font-black text-[#e63946] tracking-tight leading-none">${porcentaje.toFixed(2)}%</div>
+                `;
+
+                // Guardar en el historial
+                this.calcHistory.dscto = `Costo: S/ ${Cb.toFixed(2)} | Dscto: S/ ${D.toFixed(2)} ➔ Resultado: <span class="font-bold text-[#e63946]">${porcentaje.toFixed(2)}%</span>`;
+                this.renderHistory();
+            },
+
+            renderHistory() {
+                const displayB1 = document.getElementById('historyB1Display');
+                const displayDscto = document.getElementById('historyDsctoDisplay');
+
+                if (this.calcHistory.b1) {
+                    displayB1.innerHTML = this.calcHistory.b1;
+                } else {
+                    displayB1.innerHTML = 'Ninguna consulta aún.';
+                }
+
+                if (this.calcHistory.dscto) {
+                    displayDscto.innerHTML = this.calcHistory.dscto;
+                } else {
+                    displayDscto.innerHTML = 'Ninguna consulta aún.';
+                }
+            },
+
+            clearCalcHistory() {
+                // Borrar variables del historial
+                this.calcHistory.b1 = null;
+                this.calcHistory.dscto = null;
+                
+                // Borrar inputs
+                document.getElementById('calcB1Monto').value = '';
+                document.getElementById('calcCostoBase').value = '';
+                document.getElementById('calcDescuento').value = '';
+
+                // Borrar resultados visuales principales
+                document.getElementById('calcB1Resultado').innerHTML = '<span class="text-xs font-medium text-slate-400">El resultado aparecerá aquí</span>';
+                document.getElementById('calcResultado').innerHTML = '<span class="text-xs font-medium text-slate-400">El resultado aparecerá aquí</span>';
+
+                // Actualizar cajita de historia
+                this.renderHistory();
+                
+                // Poner foco en la primera casilla para volver a empezar
+                document.getElementById('calcB1Monto').focus();
             },
 
             /* LOGICA MODALES EDICION */
