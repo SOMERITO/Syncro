@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.16 (Zendesk Integration)</title>
+    <title>Syncro v5.17 (Zendesk & Reportes)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     
@@ -20,12 +20,12 @@
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background-color: #cbd5e1; border-radius: 20px; }
 
-        .fade-in { animation: fadeIn 0.4s ease-out forwards; }
+        .fade-in { animation: fadeIn 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
         .slide-up { animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
         
         @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
         }
         
         @keyframes slideUp {
@@ -80,24 +80,29 @@
             <div class="p-1.5 bg-gradient-to-br from-indigo-500 to-indigo-700 rounded-lg text-white shadow-md shadow-indigo-200">
                 <i data-lucide="infinity" class="w-5 h-5"></i>
             </div>
-            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-indigo-600">Syncro</span>
+            <span class="bg-clip-text text-transparent bg-gradient-to-r from-indigo-900 to-indigo-600 hidden sm:inline">Syncro</span>
         </div>
         
-        <div class="ml-auto flex items-center gap-3">
+        <div class="ml-auto flex items-center gap-2">
             
-            <button onclick="app.openCausisticas()" class="flex items-center gap-2 px-4 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Causísticas Zendesk">
-                <i data-lucide="book-open" class="w-4 h-4 text-[#E50019]"></i>
-                <span class="hidden md:inline">Causísticas</span>
+            <button onclick="app.openReportes()" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Reportes">
+                <i data-lucide="clipboard-edit" class="w-4 h-4 text-[#d32f2f]"></i>
+                <span class="hidden lg:inline">Reportes</span>
             </button>
 
-            <button onclick="app.openToolsModal()" class="flex items-center gap-2 px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all font-bold text-sm shadow-md" title="Abrir Calculadoras">
+            <button onclick="app.openCausisticas()" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Causísticas Zendesk">
+                <i data-lucide="book-open" class="w-4 h-4 text-[#E50019]"></i>
+                <span class="hidden lg:inline">Causísticas</span>
+            </button>
+
+            <button onclick="app.openToolsModal()" class="flex items-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all font-bold text-sm shadow-md" title="Abrir Calculadoras">
                 <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                <span class="hidden md:inline">Calculadoras</span>
+                <span class="hidden lg:inline">Calculadoras</span>
             </button>
 
             <div class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1">
                 <div id="syncLight" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.5)] transition-colors duration-300"></div>
-                <span id="syncText" class="text-xs font-bold text-slate-500">Conectando...</span>
+                <span id="syncText" class="text-xs font-bold text-slate-500 hidden sm:inline">Conectando...</span>
             </div>
         </div>
     </header>
@@ -127,7 +132,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.16</p>
+                    <p>Cloud Edition v5.17</p>
                 </div>
             </div>
         </aside>
@@ -135,6 +140,62 @@
         <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50/50">
             <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth"></div>
         </main>
+    </div>
+
+    <div id="reportesModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
+        <div id="reportesModalContent" class="bg-white p-6 md:p-8 rounded-[24px] shadow-2xl w-[95%] max-w-[650px] transform translate-y-8 transition-transform duration-300 relative border-t-[5px] border-[#d32f2f]">
+            
+            <button onclick="app.closeReportes()" class="absolute top-4 right-4 p-2 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors z-10">
+                <i data-lucide="x" class="w-6 h-6"></i>
+            </button>
+
+            <div class="flex flex-col items-center mb-6">
+                <h2 class="text-2xl font-black text-[#d32f2f] tracking-tight text-center">Reportar Expirado</h2>
+            </div>
+            
+            <div class="mb-6">
+                <label for="repTicketType" class="block mb-2 font-bold text-sm text-slate-600">Plataforma del Ticket:</label>
+                <select id="repTicketType" onchange="app.toggleReportesType()" class="w-full px-4 py-3 bg-[#fafafa] border-2 border-slate-200 rounded-xl text-slate-800 font-medium text-base focus:outline-none focus:bg-white focus:border-[#d32f2f] focus:ring-4 focus:ring-[#d32f2f]/10 transition-all cursor-pointer">
+                    <option value="Zendesk">Zendesk</option>
+                    <option value="CRM">CRM</option>
+                </select>
+            </div>
+
+            <div id="repZendeskFields" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-6 fade-in">
+                <div>
+                    <label for="repNumZendesk" class="block mb-2 font-bold text-sm text-slate-600">N. de ticket Zendesk:</label>
+                    <input type="text" id="repNumZendesk" placeholder="Ej. 61830" oninput="app.updateReportesTemplate()" class="w-full px-4 py-3 bg-[#fafafa] border-2 border-slate-200 rounded-xl text-slate-800 font-medium text-base focus:outline-none focus:bg-white focus:border-[#d32f2f] focus:ring-4 focus:ring-[#d32f2f]/10 transition-all">
+                </div>
+                <div>
+                    <label for="repStudentCode" class="block mb-2 font-bold text-sm text-slate-600">Código del estudiante:</label>
+                    <input type="text" id="repStudentCode" placeholder="Ej. U20211B377" oninput="app.updateReportesTemplate()" class="w-full px-4 py-3 bg-[#fafafa] border-2 border-slate-200 rounded-xl text-slate-800 font-medium text-base focus:outline-none focus:bg-white focus:border-[#d32f2f] focus:ring-4 focus:ring-[#d32f2f]/10 transition-all">
+                </div>
+            </div>
+
+            <div id="repCrmFields" class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 hidden">
+                <div>
+                    <label for="repNumCRM" class="block mb-2 font-bold text-sm text-slate-600">N. de ticket:</label>
+                    <input type="text" id="repNumCRM" placeholder="CAS-4281194..." oninput="app.updateReportesTemplate()" class="w-full px-4 py-3 bg-[#fafafa] border-2 border-slate-200 rounded-xl text-slate-800 font-medium text-base focus:outline-none focus:bg-white focus:border-[#d32f2f] focus:ring-4 focus:ring-[#d32f2f]/10 transition-all">
+                </div>
+                <div>
+                    <label for="repDniCode" class="block mb-2 font-bold text-sm text-slate-600">DNI:</label>
+                    <input type="text" id="repDniCode" placeholder="Ej. 10739663" oninput="app.updateReportesTemplate()" class="w-full px-4 py-3 bg-[#fafafa] border-2 border-slate-200 rounded-xl text-slate-800 font-medium text-base focus:outline-none focus:bg-white focus:border-[#d32f2f] focus:ring-4 focus:ring-[#d32f2f]/10 transition-all">
+                </div>
+                <div>
+                    <label for="repAgentBO" class="block mb-2 font-bold text-sm text-slate-600">Agente BO:</label>
+                    <input type="text" id="repAgentBO" placeholder="Ej. URSULA..." oninput="app.updateReportesTemplate()" class="w-full px-4 py-3 bg-[#fafafa] border-2 border-slate-200 rounded-xl text-slate-800 font-medium text-base focus:outline-none focus:bg-white focus:border-[#d32f2f] focus:ring-4 focus:ring-[#d32f2f]/10 transition-all">
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label for="repResult" class="block mb-2 font-bold text-sm text-slate-600">Previsualización del reporte (Copia exacta):</label>
+                <textarea id="repResult" readonly class="w-full h-32 px-4 py-3 bg-[#fcfcfc] border-2 border-slate-200 rounded-xl text-slate-700 font-mono text-[15px] focus:outline-none resize-none"></textarea>
+            </div>
+
+            <button id="btnCopyReportes" onclick="app.copyReportes()" class="w-full py-4 bg-[#d32f2f] hover:bg-[#b71c1c] text-white rounded-xl text-base font-bold transition-all active:translate-y-0.5 shadow-md shadow-red-600/20 flex justify-center items-center gap-2">
+                <i data-lucide="clipboard-copy" class="w-5 h-5"></i> Copiar para WhatsApp
+            </button>
+        </div>
     </div>
 
     <div id="causisticasModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
@@ -518,13 +579,11 @@
             saveTimeout: null, 
             linkModalCallback: null,
 
-            // Variables para el registro de calculadoras
             calcHistory: {
                 b1: null,
                 dscto: null
             },
 
-            // Variables para Causísticas
             causisticaCategory: 'todos',
             causisticaSearchTerm: '',
 
@@ -683,28 +742,18 @@
             setupKeyboardShortcuts() {
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape') {
-                        const linkModal = document.getElementById('linkModal');
-                        if (!linkModal.classList.contains('pointer-events-none')) {
-                            this.closeLinkModal();
-                            return;
-                        }
-
-                        const itemModal = document.getElementById('itemModal');
-                        if (!itemModal.classList.contains('pointer-events-none')) {
-                            this.closeItemModal();
-                            return;
-                        }
-
-                        const toolsModal = document.getElementById('toolsModal');
-                        if (!toolsModal.classList.contains('pointer-events-none')) {
-                            this.closeToolsModal();
-                            return;
-                        }
-
-                        const causisticasModal = document.getElementById('causisticasModal');
-                        if (!causisticasModal.classList.contains('pointer-events-none')) {
-                            this.closeCausisticas();
-                            return;
+                        const modals = ['linkModal', 'itemModal', 'toolsModal', 'causisticasModal', 'reportesModal'];
+                        
+                        for (let modalId of modals) {
+                            const modal = document.getElementById(modalId);
+                            if (modal && !modal.classList.contains('pointer-events-none')) {
+                                if (modalId === 'linkModal') this.closeLinkModal();
+                                if (modalId === 'itemModal') this.closeItemModal();
+                                if (modalId === 'toolsModal') this.closeToolsModal();
+                                if (modalId === 'causisticasModal') this.closeCausisticas();
+                                if (modalId === 'reportesModal') this.closeReportes();
+                                return;
+                            }
                         }
                         
                         if (this.isSidebarOpen) {
@@ -721,6 +770,96 @@
             autoResize(el) {
                 el.style.height = 'auto';
                 el.style.height = el.scrollHeight + 'px';
+            },
+
+            /* LOGICA REPORTES */
+            openReportes() {
+                const modal = document.getElementById('reportesModal');
+                const content = document.getElementById('reportesModalContent');
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-y-8');
+                
+                this.updateReportesTemplate();
+                const type = document.getElementById('repTicketType').value;
+                setTimeout(() => {
+                    if (type === 'Zendesk') {
+                        document.getElementById('repNumZendesk').focus();
+                    } else {
+                        document.getElementById('repNumCRM').focus();
+                    }
+                }, 300);
+            },
+            
+            closeReportes() {
+                const modal = document.getElementById('reportesModal');
+                const content = document.getElementById('reportesModalContent');
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-y-8');
+            },
+
+            toggleReportesType() {
+                const type = document.getElementById('repTicketType').value;
+                const zendeskFields = document.getElementById('repZendeskFields');
+                const crmFields = document.getElementById('repCrmFields');
+
+                if (type === 'Zendesk') {
+                    crmFields.classList.add('hidden');
+                    zendeskFields.classList.remove('hidden');
+                    zendeskFields.classList.remove('fade-in');
+                    void zendeskFields.offsetWidth;
+                    zendeskFields.classList.add('fade-in');
+                    document.getElementById('repNumZendesk').focus();
+                } else {
+                    zendeskFields.classList.add('hidden');
+                    crmFields.classList.remove('hidden');
+                    crmFields.classList.remove('fade-in');
+                    void crmFields.offsetWidth;
+                    crmFields.classList.add('fade-in');
+                    document.getElementById('repNumCRM').focus();
+                }
+                this.updateReportesTemplate();
+            },
+
+            updateReportesTemplate() {
+                const type = document.getElementById('repTicketType').value;
+                const resultTextarea = document.getElementById('repResult');
+                let templateText = "";
+
+                if (type === 'Zendesk') {
+                    const numZ = document.getElementById('repNumZendesk').value || '';
+                    const code = document.getElementById('repStudentCode').value || '';
+                    templateText = `*TICKET ZENDESK EXPIRADO:*\n\n📌 _*N. de ticket Zendesk:*_ ${numZ}\n📌 _*Código del estudiante:*_ ${code}`;
+                } else if (type === 'CRM') {
+                    const numC = document.getElementById('repNumCRM').value || '';
+                    const dni = document.getElementById('repDniCode').value || '';
+                    const agent = document.getElementById('repAgentBO').value || '';
+                    templateText = `*TICKET CRM EXPIRADO:*\n\n📌 _*N. de ticket:*_ ${numC}\n📌 _*DNI:*_ ${dni}\n📌 _*Agente BO asignado:*_ ${agent}`;
+                }
+                
+                resultTextarea.value = templateText;
+            },
+
+            copyReportes() {
+                const resultTextarea = document.getElementById('repResult');
+                resultTextarea.select();
+                resultTextarea.setSelectionRange(0, 99999);
+                
+                navigator.clipboard.writeText(resultTextarea.value).then(() => {
+                    const btn = document.getElementById('btnCopyReportes');
+                    const originalHTML = btn.innerHTML;
+                    
+                    btn.innerHTML = '<i data-lucide="check" class="w-5 h-5"></i> ¡Copiado correctamente!';
+                    btn.classList.remove('bg-[#d32f2f]', 'hover:bg-[#b71c1c]', 'shadow-red-600/20');
+                    btn.classList.add('bg-emerald-500', 'hover:bg-emerald-600', 'shadow-emerald-500/20');
+                    lucide.createIcons();
+                    
+                    setTimeout(() => {
+                        btn.innerHTML = originalHTML;
+                        btn.classList.add('bg-[#d32f2f]', 'hover:bg-[#b71c1c]', 'shadow-red-600/20');
+                        btn.classList.remove('bg-emerald-500', 'hover:bg-emerald-600', 'shadow-emerald-500/20');
+                        lucide.createIcons();
+                    }, 2000);
+                });
             },
 
             /* LOGICA CAUSÍSTICAS */
@@ -742,7 +881,6 @@
             setCausisticaCategory(cat, btnElement) {
                 this.causisticaCategory = cat;
                 
-                // Actualizar estilos de los botones
                 const botones = document.querySelectorAll('#causisticasFilters .btn-filtro');
                 botones.forEach(btn => {
                     btn.classList.remove('bg-[#E50019]', 'text-white', 'border-[#E50019]', 'shadow-md');
@@ -793,7 +931,7 @@
                     const originalBg = element.style.backgroundColor;
                     const originalBorder = element.style.borderColor;
                     
-                    element.style.backgroundColor = '#dcfce7'; // verde claro feedback
+                    element.style.backgroundColor = '#dcfce7';
                     element.style.borderColor = '#86efac';
                     
                     setTimeout(() => {
