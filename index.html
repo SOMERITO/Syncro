@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Syncro v5.18</title>
+    <title>Syncro v5.19 (Drag & Drop)</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sortablejs@latest/Sortable.min.js"></script>
     
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
@@ -66,6 +67,10 @@
         .custom-number-input {
             -moz-appearance: textfield;
         }
+        
+        /* Efecto al arrastrar una casilla */
+        .sortable-ghost { opacity: 0.4; background-color: #f8fafc; border-style: dashed; }
+        .sortable-drag { cursor: grabbing !important; }
     </style>
 </head>
 <body class="flex flex-col h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
@@ -130,7 +135,7 @@
                 
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Cloud Edition v5.18</p>
+                    <p>Cloud Edition v5.19</p>
                 </div>
             </div>
         </aside>
@@ -214,166 +219,46 @@
             </div>
             <div class="flex-1 overflow-y-auto custom-scrollbar pr-2">
                 <ul id="listaCausisticas" class="space-y-3 pb-4">
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.1 No tengo o no me llegó turno</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.2 Dificultades en proceso de planificación horaria</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.3 No encuentro vacantes</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.4 Mi nota no actualizada</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.5 Otros problemas con mi matrícula</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.1 Pago actual no reflejado</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.2 Tengo un bloqueo por deuda</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.3 No se aplicó cobro por crédito</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.4 No se emitió mi boleta o no figura en el sistema</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.5 Devolución de pago no realizado</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.6 Anulación de boleta</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.7 Beneficios no aplicados</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.1 Traslado interno de carrera</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.2 Matrícula alumno sin promedio ponderable</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.3 Permisos de matrículas - Dispersión de niveles</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.4 Traslado de campus</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.5 Retiro de ciclo</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.6 Retiro de módulo</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.7 Carta de permanencia</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.8 Retiro de asignatura</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.9 Reanudación de estudios</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.10 Constancias y certificados</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.11 Cambio de modalidad</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.12 Convalidación por traslado</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.13 Otros trámites</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.14 Constancia de egreso</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Acceso al sistema" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Acceso al sistema</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">4.1 Error de acceso al sistema</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Acceso al sistema" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Acceso al sistema</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">4.2 Problemas con contraseña</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.1 Bloqueo de Inglés</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.2 Cruce de horario de matrícula con curso de inglés</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.3 Problemas con Placement Test - PLT</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumnos nuevos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumnos nuevos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">6.4 No me aplicaron el descuento ofrecido</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumno Reingresos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumno Reingresos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">7.1 No me convalidan mis cursos</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumno Reingresos" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumno Reingresos</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">7.2 No me aplicaron el descuento ofrecido</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Servicios UPC" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Servicios UPC</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.1 Ceremonia de graduación</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Servicios UPC" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Servicios UPC</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.2 Servicio de campus</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.1 Quiero agregar un curso</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.2 Fui afectado por un cierre de sección</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.3 Ya pagué y quiero matricularme</span>
-                    </li>
-                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Me registraron una matrícula y tengo dudas" onclick="app.copyCausistica(this)">
-                        <span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Me registraron una matrícula y tengo dudas</span>
-                        <span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.1 Deseo modificar la matrícula</span>
-                    </li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.1 No tengo o no me llegó turno</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.2 Dificultades en proceso de planificación horaria</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.3 No encuentro vacantes</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.4 Mi nota no actualizada</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">1.5 Otros problemas con mi matrícula</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.1 Pago actual no reflejado</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.2 Tengo un bloqueo por deuda</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.3 No se aplicó cobro por crédito</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.4 No se emitió mi boleta o no figura en el sistema</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.5 Devolución de pago no realizado</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.6 Anulación de boleta</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Deudas y pagos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Deudas y pagos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">2.7 Beneficios no aplicados</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.1 Traslado interno de carrera</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.2 Matrícula alumno sin promedio ponderable</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.3 Permisos de matrículas - Dispersión de niveles</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.4 Traslado de campus</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.5 Retiro de ciclo</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.6 Retiro de módulo</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.7 Carta de permanencia</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.8 Retiro de asignatura</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.9 Reanudación de estudios</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.10 Constancias y certificados</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.11 Cambio de modalidad</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.12 Convalidación por traslado</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.13 Otros trámites</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Trámites" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Trámites</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">3.14 Constancia de egreso</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Acceso al sistema" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Acceso al sistema</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">4.1 Error de acceso al sistema</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Acceso al sistema" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Acceso al sistema</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">4.2 Problemas con contraseña</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.1 Bloqueo de Inglés</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.2 Cruce de horario de matrícula con curso de inglés</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Inglés (We Talk)" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Inglés (We Talk)</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">5.3 Problemas con Placement Test - PLT</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumnos nuevos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumnos nuevos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">6.4 No me aplicaron el descuento ofrecido</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumno Reingresos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumno Reingresos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">7.1 No me convalidan mis cursos</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Alumno Reingresos" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Alumno Reingresos</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">7.2 No me aplicaron el descuento ofrecido</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Servicios UPC" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Servicios UPC</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.1 Ceremonia de graduación</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Servicios UPC" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Servicios UPC</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.2 Servicio de campus</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.1 Quiero agregar un curso</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.2 Fui afectado por un cierre de sección</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Matrícula extemporánea" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Matrícula extemporánea</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">9.3 Ya pagué y quiero matricularme</span></li>
+                    <li class="causistica-item p-4 border border-[#E0E0E0] rounded-xl cursor-pointer bg-white hover:border-[#FCE6E8] hover:border-l-4 hover:border-l-[#E50019] hover:bg-[#FFFAFA] transition-all shadow-sm" data-cat="Me registraron una matrícula y tengo dudas" onclick="app.copyCausistica(this)"><span class="inline-block bg-[#FCE6E8] text-[#CC0016] px-2.5 py-1 rounded md text-[11px] font-bold uppercase tracking-wide mb-2">Me registraron una matrícula y tengo dudas</span><span class="opcion-text block text-[15px] font-medium text-[#333333] leading-snug">8.1 Deseo modificar la matrícula</span></li>
                 </ul>
                 <div id="causisticasEmpty" class="hidden p-8 text-center bg-[#F5F5F5] border border-dashed border-[#E0E0E0] rounded-xl text-[#666666] font-medium">
                     😕 No encontramos opciones para esta búsqueda o categoría.
@@ -1364,7 +1249,6 @@
                                 <div class="px-4 py-2 text-sm font-bold truncate max-w-[250px] cursor-pointer" onclick="app.toggleStep('${step.id}')" title="Marcar/Desmarcar paso">
                                     ${step.text}
                                 </div>
-                                
                                 <div class="flex items-center absolute right-0 top-0 bottom-0 pr-1 pl-4 opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-l from-white via-white to-transparent">
                                     <button onclick="app.editStep('${step.id}')" class="p-1.5 text-slate-400 hover:text-indigo-600 bg-white rounded-full shadow-sm border border-slate-100" title="Editar paso"><i data-lucide="pencil" class="w-3 h-3"></i></button>
                                     <button onclick="app.deleteStep('${step.id}')" class="p-1.5 text-slate-400 hover:text-red-500 bg-white rounded-full shadow-sm border border-slate-100 ml-1" title="Eliminar paso"><i data-lucide="x" class="w-3 h-3"></i></button>
@@ -1570,6 +1454,9 @@
                     `;
                     lucide.createIcons();
                     
+                    // Inicializamos el Drag and Drop de las listas recién inyectadas al DOM
+                    this.initSortable();
+
                     setTimeout(() => {
                         const titleInput = document.getElementById('mainTitleInput');
                         if (titleInput) app.autoResize(titleInput);
@@ -1578,6 +1465,41 @@
                 } catch (error) {
                     console.error("Error al renderizar el contenido principal:", error);
                 }
+            },
+
+            // Función para iniciar SortableJS (Drag and Drop)
+            initSortable() {
+                if (typeof Sortable === 'undefined') return;
+                
+                const lists = document.querySelectorAll('.sortable-list');
+                lists.forEach(listEl => {
+                    const sectionKey = listEl.getAttribute('data-section');
+                    if(!sectionKey) return;
+
+                    new Sortable(listEl, {
+                        handle: '.drag-handle', // Solo inicia el arrastre desde los 6 puntitos
+                        animation: 200, // milisegundos de animación
+                        ghostClass: 'sortable-ghost', // Clase visual mientras se arrastra
+                        dragClass: 'sortable-drag',
+                        onEnd: (evt) => {
+                            const oldIndex = evt.oldIndex;
+                            const newIndex = evt.newIndex;
+                            
+                            if (oldIndex === newIndex) return; // No cambió de lugar
+                            
+                            const topic = this.topics.find(t => String(t.id) === String(this.selectedTopicId));
+                            if (topic && topic.sections[sectionKey]) {
+                                const arr = topic.sections[sectionKey];
+                                // Movemos el elemento en nuestro array de datos
+                                const movedItem = arr.splice(oldIndex, 1)[0];
+                                arr.splice(newIndex, 0, movedItem);
+                                
+                                topic.lastModified = Date.now();
+                                this.scheduleSave();
+                            }
+                        }
+                    });
+                });
             },
 
             generateStandardCardHTML(title, icon, items, sectionKey, color) {
@@ -1603,28 +1525,35 @@
                     }
 
                     return `
-                    <div class="${itemClass} group relative rounded-3xl border ${c.itemBorder} ${c.itemBg} p-5 mb-5 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-col gap-3 min-h-[5rem]" style="${isHidden}">
+                    <div class="${itemClass} group relative rounded-3xl border ${c.itemBorder} ${c.itemBg} p-4 pl-3 mb-5 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-row items-stretch gap-3 min-h-[5rem]" data-id="${item.id}" style="${isHidden}">
                         
-                        <div class="absolute right-3 top-3 flex items-center gap-2 z-10">
-                            <button onclick="app.openItemModal('${sectionKey}', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all shadow-sm border border-slate-200" title="Editar Redacción y Enlace">
-                                <i data-lucide="edit" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="app.deleteItem('${sectionKey}', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all shadow-sm border border-slate-200" title="Eliminar">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                        <div class="drag-handle flex items-center justify-center cursor-grab text-slate-300 hover:text-indigo-500 transition-colors w-6 shrink-0" title="Arrastrar para mover">
+                            <i data-lucide="grip-vertical" class="w-5 h-5"></i>
                         </div>
 
-                        <div class="rich-text-display w-full text-[15px] font-medium text-slate-700 leading-relaxed pr-28 break-words cursor-default pt-2 pb-2 flex-1">
-                            ${item.text || '<span class="text-slate-400 italic font-normal">Casilla vacía. Haz clic en el lápiz para redactar.</span>'}
-                        </div>
+                        <div class="flex-1 flex flex-col relative py-1">
+                            
+                            <div class="absolute right-0 top-0 flex items-center gap-2 z-10">
+                                <button onclick="app.openItemModal('${sectionKey}', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-indigo-50 text-slate-400 hover:text-indigo-600 rounded-xl transition-all shadow-sm border border-slate-200" title="Editar Redacción y Enlace">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="app.deleteItem('${sectionKey}', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all shadow-sm border border-slate-200" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
 
-                        ${hasLink ? `
-                        <div class="mt-auto pt-4 border-t ${c.itemBorder} flex justify-end">
-                            <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="w-11 h-11 flex items-center justify-center bg-white hover:bg-blue-50 text-blue-500 hover:text-blue-600 rounded-xl transition-all shadow-sm border border-slate-200" title="Abrir enlace">
-                                <i data-lucide="external-link" class="w-5 h-5"></i>
-                            </a>
+                            <div class="rich-text-display w-full text-[15px] font-medium text-slate-700 leading-relaxed pr-28 break-words cursor-default pt-2 pb-2 flex-1">
+                                ${item.text || '<span class="text-slate-400 italic font-normal">Casilla vacía. Haz clic en el lápiz para redactar.</span>'}
+                            </div>
+
+                            ${hasLink ? `
+                            <div class="mt-auto pt-4 border-t ${c.itemBorder} flex justify-end">
+                                <a href="${item.link.startsWith('http') ? item.link : 'https://' + item.link}" target="_blank" class="w-11 h-11 flex items-center justify-center bg-white hover:bg-blue-50 text-blue-500 hover:text-blue-600 rounded-xl transition-all shadow-sm border border-slate-200" title="Abrir enlace">
+                                    <i data-lucide="external-link" class="w-5 h-5"></i>
+                                </a>
+                            </div>
+                            ` : ''}
                         </div>
-                        ` : ''}
                     </div>
                     `;
                 }).join('');
@@ -1665,7 +1594,9 @@
                     <div class="flex flex-col h-full bg-white rounded-[2rem] border ${c.border} shadow-sm overflow-hidden card-hover">
                         ${headerHTML}
                         <div class="flex-1 p-6 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
-                            ${itemsHTML}
+                            <div class="sortable-list" data-section="${sectionKey}">
+                                ${itemsHTML}
+                            </div>
                             <button onclick="app.addItem('${sectionKey}')" class="w-full py-5 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 text-base font-bold transition-all border-slate-200 text-slate-400 hover:border-slate-300 ${c.btnHov}">
                                 <i data-lucide="plus" class="w-5 h-5"></i>
                                 <span>Añadir un nuevo requisito</span>
@@ -1680,26 +1611,33 @@
                     const isHidden = this.speechSearchTerm && !((item.title || '').toLowerCase().includes(this.speechSearchTerm)) ? 'display: none;' : '';
                     
                     return `
-                    <div class="speech-item group relative rounded-3xl border border-emerald-100 bg-emerald-50/30 p-6 mb-6 shadow-sm hover:shadow-md hover:bg-white transition-all min-h-[6rem] flex flex-col" style="${isHidden}">
+                    <div class="speech-item group relative rounded-3xl border border-emerald-100 bg-emerald-50/30 p-4 pl-3 mb-6 shadow-sm hover:shadow-md hover:bg-white transition-all flex flex-row items-stretch gap-3 min-h-[6rem]" data-id="${item.id}" style="${isHidden}">
                         
-                        <div class="absolute right-3 top-3 flex items-center gap-2 z-10">
-                            <button onclick="app.openItemModal('speech', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-xl transition-all shadow-sm border border-emerald-200" title="Editar Guión">
-                                <i data-lucide="edit" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="app.copyTextById('speech-text-${item.id}', this)" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-xl transition-all shadow-sm border border-emerald-200" title="Copiar Guión">
-                                <i data-lucide="copy" class="w-4 h-4"></i>
-                            </button>
-                            <button onclick="app.deleteItem('speech', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all shadow-sm border border-emerald-200" title="Eliminar">
-                                <i data-lucide="trash-2" class="w-4 h-4"></i>
-                            </button>
+                        <div class="drag-handle flex items-center justify-center cursor-grab text-emerald-300 hover:text-emerald-600 transition-colors w-6 shrink-0" title="Arrastrar para mover">
+                            <i data-lucide="grip-vertical" class="w-5 h-5"></i>
                         </div>
 
-                        <h4 class="speech-title-display font-bold text-lg text-emerald-800 border-b border-emerald-100 mb-4 pb-2 pr-36 min-h-[2rem]">
-                            ${item.title || '<span class="text-emerald-400/70 font-normal italic text-sm">Sin título</span>'}
-                        </h4>
-                        
-                        <div id="speech-text-${item.id}" class="rich-text-display w-full text-base font-medium text-slate-700 italic leading-relaxed break-words cursor-default flex-1">
-                            ${item.text || '<span class="text-emerald-400/70 font-normal">Guión vacío. Haz clic en el lápiz para redactar.</span>'}
+                        <div class="flex-1 flex flex-col relative py-1 min-w-0">
+                            
+                            <div class="absolute right-0 top-0 flex items-center gap-2 z-10">
+                                <button onclick="app.openItemModal('speech', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-xl transition-all shadow-sm border border-emerald-200" title="Editar Guión">
+                                    <i data-lucide="edit" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="app.copyTextById('speech-text-${item.id}', this)" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-emerald-50 text-slate-400 hover:text-emerald-600 rounded-xl transition-all shadow-sm border border-emerald-200" title="Copiar Guión">
+                                    <i data-lucide="copy" class="w-4 h-4"></i>
+                                </button>
+                                <button onclick="app.deleteItem('speech', '${item.id}')" class="w-10 h-10 flex items-center justify-center bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl transition-all shadow-sm border border-emerald-200" title="Eliminar">
+                                    <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                </button>
+                            </div>
+
+                            <h4 class="speech-title-display font-bold text-lg text-emerald-800 border-b border-emerald-100 mb-4 pb-2 pr-40 min-h-[2rem]">
+                                ${item.title || '<span class="text-emerald-400/70 font-normal italic text-sm">Sin título</span>'}
+                            </h4>
+                            
+                            <div id="speech-text-${item.id}" class="rich-text-display w-full text-base font-medium text-slate-700 italic leading-relaxed break-words cursor-default flex-1">
+                                ${item.text || '<span class="text-emerald-400/70 font-normal">Guión vacío. Haz clic en el lápiz para redactar.</span>'}
+                            </div>
                         </div>
                     </div>
                     `;
@@ -1723,7 +1661,9 @@
                             </div>
                         </div>
                         <div class="flex-1 p-6 overflow-y-auto max-h-[500px] custom-scrollbar bg-slate-50/30">
-                            ${itemsHTML}
+                            <div class="sortable-list" data-section="speech">
+                                ${itemsHTML}
+                            </div>
                             <button onclick="app.addItem('speech')" class="w-full py-5 border-2 border-dashed rounded-2xl flex items-center justify-center gap-3 text-base font-bold transition-all border-emerald-200 text-emerald-600 hover:bg-emerald-50 hover:border-emerald-300 hover:shadow-inner mt-2">
                                 <i data-lucide="plus" class="w-5 h-5"></i>
                                 <span>Añadir Nuevo Bloque de Guión</span>
