@@ -434,9 +434,8 @@
 
     <script>
         const app = {
-            // Reemplaza esto con tu binId de JSONBin.io si logras recuperarlo. Si no, usa el ID de un bin público de prueba o implementa Firebase.
-            binId: 'TU_BIN_ID', 
-            apiKey: 'TU_API_KEY',
+            binId: '69a0a424ae596e708f4d1b47', 
+            apiKey: '$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm',
             
             topics: [],
             selectedTopicId: null,
@@ -994,6 +993,7 @@
                         lucide.createIcons(); return;
                     }
 
+                    // Paleta dinámica basada en estado
                     const paleta = this.getPalette(topic.estado);
                     container.className = `flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth transition-colors duration-500 ${paleta.bg}`;
 
