@@ -147,12 +147,12 @@ body {
                 <i data-lucide="book-open" class="w-4 h-4 text-[#E50019]"></i>
                 <span class="hidden lg:inline">Causísticas</span>
             </button>
-            <button onclick="app.openToolsModal()" class="flex items-center gap-2 px-3 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl transition-all font-bold text-sm shadow-md" title="Abrir Calculadoras">
-                <i data-lucide="calculator" class="w-4 h-4 text-white"></i>
-                <span class="hidden lg:inline">Calculadoras</span>
+            <button onclick="app.openCloudSettings()" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Configuración y recuperación de datos">
+                <i data-lucide="cloud-cog" class="w-4 h-4 text-indigo-600"></i>
+                <span class="hidden lg:inline">Datos</span>
             </button>
 
-            <div id="syncStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1 transition-all duration-300" title="Estado de sincronización">
+            <div id="syncStatus" onclick="app.openCloudSettings()" class="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1 transition-all duration-300" title="Estado de sincronización. Haz clic para configurar"> class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1 transition-all duration-300" title="Estado de sincronización">
                 <div id="syncLight" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.5)] transition-colors duration-300"></div>
                 <span id="syncText" class="text-xs font-bold text-slate-500 hidden sm:inline">Conectando...</span>
             </div>
@@ -475,10 +475,12 @@ body {
 
     <script>
         const SYNCRO_CONFIG = Object.freeze({
-            // Seguridad: NO pongas aquí una Master Key de JSONBin en un repositorio público.
-            // Para habilitar nube usa una API/proxy de backend y asígnala desde el servidor.
-            binId: '',
-            apiKey: ''
+            // Compatible con la fuente de datos utilizada por Syncro v5.x.
+            // El binId no es secreto; la Master Key NUNCA se publica en el HTML.
+            binId: '69a0a424ae596e708f4d1b47',
+            apiKey: (() => {
+                try { return localStorage.getItem('syncro_jsonbin_key') || ''; } catch (_) { return ''; }
+            })()
         });
 
         const escapeHTML = (value = '') => String(value)
@@ -580,6 +582,7 @@ body {
             apiKey: SYNCRO_CONFIG.apiKey,
             storageKey: 'syncro_topics_cache_v6',
             cloudEnabled: Boolean(SYNCRO_CONFIG.binId && SYNCRO_CONFIG.apiKey),
+            cloudHydrated: false,
 
             topics: [],
             selectedTopicId: null,
@@ -604,6 +607,9 @@ body {
                 this.applySidebarState();
                 lucide.createIcons();
                 this.setupKeyboardShortcuts();
+                document.getElementById('cloudSettingsModal')?.addEventListener('click', (event) => {
+                    if (event.target.id === 'cloudSettingsModal') this.closeCloudSettings();
+                });
                 this.loadFromCloud();
             },
 
@@ -665,7 +671,8 @@ body {
                 this.updateSyncUI('saving', 'Cargando...');
                 if (!this.cloudEnabled) {
                     this.loadLocal();
-                    this.updateSyncUI('local', 'Modo local');
+                    this.cloudHydrated = true;
+                    this.updateSyncUI('local', this.topics.length ? 'Caché local' : 'Modo local');
                     this.renderSidebar();
                     this.renderMain();
                     return;
@@ -709,8 +716,8 @@ body {
                             if (Array.isArray(t.sections.validator)) t.sections.complianceValidator.push(...t.sections.validator);
                             if (Array.isArray(t.sections.compliance)) t.sections.complianceValidator.push(...t.sections.compliance);
                             delete t.sections.validator; delete t.sections.compliance;
-                            const sanitizeItem = item => ({ id: item?.id ? String(item.id) : `${Date.now()}_${Math.random()}`, text: item?.text || '', link: item?.link || '', aplica: item?.aplica || 'ambos' });
-                            const sanitizeSpeech = item => ({ id: item?.id ? String(item.id) : `${Date.now()}_${Math.random()}`, title: item?.title || '', text: item?.text || '', aplica: item?.aplica || 'ambos' });
+                            const sanitizeItem = item => ({ ...(item || {}), id: item?.id ? String(item.id) : `${Date.now()}_${Math.random()}`, text: item?.text || '', link: item?.link || '', aplica: item?.aplica || 'ambos' });
+                            const sanitizeSpeech = item => ({ ...(item || {}), id: item?.id ? String(item.id) : `${Date.now()}_${Math.random()}`, title: item?.title || '', text: item?.text || '', aplica: item?.aplica || 'ambos' });
                             t.fechas = t.fechas.map(f => ({ ...f, aplica: f.aplica || 'ambos' }));
                             t.sections.complianceValidator = t.sections.complianceValidator.map(sanitizeItem);
                             t.sections.keyInfo = t.sections.keyInfo.map(sanitizeItem);
@@ -719,6 +726,7 @@ body {
                             return t;
                         }).filter(Boolean);
                         this.sortTopics();
+                        this.cloudHydrated = true;
                         const savedTopicId = localStorage.getItem('syncro_topic_id');
                         if (savedTopicId && this.topics.some(t => String(t.id) === savedTopicId)) this.selectedTopicId = savedTopicId;
                         this.saveLocal();
@@ -727,6 +735,7 @@ body {
                 } catch (error) {
                     console.error('No fue posible cargar desde la nube:', error);
                     const loadedLocal = this.loadLocal();
+                    this.cloudHydrated = true;
                     this.updateSyncUI(loadedLocal ? 'local' : 'error', loadedLocal ? 'Caché local' : 'Sin conexión');
                 }
 
@@ -742,7 +751,7 @@ body {
             },
 
             async saveToCloud() {
-                if (!this.cloudEnabled) return;
+                if (!this.cloudEnabled || !this.cloudHydrated) return;
                 try {
                     const response = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}`, {
                         method: 'PUT',
@@ -759,10 +768,146 @@ body {
                 }
             },
 
+            openCloudSettings() {
+                const modal = document.getElementById('cloudSettingsModal');
+                const content = document.getElementById('cloudSettingsContent');
+                const input = document.getElementById('cloudApiKey');
+                if (!modal || !content) return;
+                if (input) input.value = SYNCRO_CONFIG.apiKey || localStorage.getItem('syncro_jsonbin_key') || '';
+                modal.classList.remove('pointer-events-none');
+                requestAnimationFrame(() => {
+                    modal.classList.remove('opacity-0');
+                    content.classList.remove('translate-y-5', 'scale-[.98]');
+                });
+                modal.setAttribute('aria-hidden', 'false');
+                setTimeout(() => input?.focus(), 80);
+            },
+
+            closeCloudSettings() {
+                const modal = document.getElementById('cloudSettingsModal');
+                const content = document.getElementById('cloudSettingsContent');
+                if (!modal || !content) return;
+                modal.classList.add('opacity-0');
+                content.classList.add('translate-y-5', 'scale-[.98]');
+                setTimeout(() => modal.classList.add('pointer-events-none'), 260);
+                modal.setAttribute('aria-hidden', 'true');
+            },
+
+            toggleCloudKeyVisibility() {
+                const input = document.getElementById('cloudApiKey');
+                const eye = document.getElementById('cloudKeyEye');
+                if (!input) return;
+                input.type = input.type === 'password' ? 'text' : 'password';
+                if (eye) eye.setAttribute('data-lucide', input.type === 'password' ? 'eye' : 'eye-off');
+                lucide.createIcons();
+            },
+
+            async recoverLegacyData() {
+                const input = document.getElementById('cloudApiKey');
+                const info = document.getElementById('cloudSettingsInfo');
+                const key = (input?.value || '').trim();
+                if (!key) {
+                    showToast('Pega la Master Key de tu Syncro anterior.', 'warning');
+                    input?.focus();
+                    return;
+                }
+                try {
+                    localStorage.setItem('syncro_jsonbin_key', key);
+                } catch (_) {}
+                this.cloudEnabled = Boolean(this.binId && key);
+                this.apiKey = key;
+                this.updateSyncUI('saving', 'Recuperando...');
+                if (info) { info.className = 'rounded-2xl border border-indigo-100 bg-indigo-50 p-4 text-sm leading-relaxed text-indigo-900'; info.textContent = 'Conectando con el almacén histórico…'; info.classList.remove('hidden'); }
+                try {
+                    const response = await fetch(`https://api.jsonbin.io/v3/b/${this.binId}/latest`, { headers: { 'X-Master-Key': key } });
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    const data = await response.json();
+                    if (!data.record || !Array.isArray(data.record.temas)) throw new Error('El almacén no contiene una colección válida de temas.');
+                    // Cargar exactamente la colección histórica y dejar que la rutina de normalización preserve campos.
+                    this.topics = data.record.temas.map(t => {
+                        if (typeof t !== 'object' || t === null) return null;
+                        t.id = t.id ? String(t.id) : `${Date.now()}_${Math.random()}`;
+                        t.title = t.title || 'Tema sin título';
+                        t.link = t.link || ''; t.costo = t.costo || ''; t.plazo = t.plazo || ''; t.tipoDias = t.tipoDias || 'útiles';
+                        t.estado = t.estado || 'ok'; t.lastModified = t.lastModified || Date.now();
+                        t.hasDualMode = !!t.hasDualMode; t.costoEpe = t.costoEpe || ''; t.plazoEpe = t.plazoEpe || ''; t.tipoDiasEpe = t.tipoDiasEpe || 'útiles';
+                        t.fechas = Array.isArray(t.fechas) ? t.fechas : [];
+                        if (t.fechaInicio || t.fechaFin) { if (!t.fechas.length) t.fechas.push({ id: `${Date.now()}_${Math.random()}`, tipo: 'Pregrado/EPE', inicio: t.fechaInicio || '', fin: t.fechaFin || '', aplica: 'ambos' }); delete t.fechaInicio; delete t.fechaFin; }
+                        if (!t.sections || typeof t.sections !== 'object') t.sections = {};
+                        if (!Array.isArray(t.sections.complianceValidator)) t.sections.complianceValidator = [];
+                        if (!Array.isArray(t.sections.keyInfo)) t.sections.keyInfo = [];
+                        if (!Array.isArray(t.sections.speech)) t.sections.speech = [];
+                        if (!Array.isArray(t.sections.flujo)) t.sections.flujo = [];
+                        if (Array.isArray(t.sections.steps) && !t.sections.flujo.length) t.sections.flujo = t.sections.steps.map(s => ({ ...s, id: s.id || `${Date.now()}_${Math.random()}`, pregunta: s.pregunta || s.text || 'Paso', si: s.si || 'Procede', no: s.no || 'Rechazado', aplica: s.aplica || 'ambos' }));
+                        if (Array.isArray(t.sections.validator)) t.sections.complianceValidator.push(...t.sections.validator);
+                        if (Array.isArray(t.sections.compliance)) t.sections.complianceValidator.push(...t.sections.compliance);
+                        delete t.sections.steps; delete t.sections.validator; delete t.sections.compliance;
+                        const item = x => ({ ...(x || {}), id: x?.id ? String(x.id) : `${Date.now()}_${Math.random()}`, text: x?.text || '', link: x?.link || '', aplica: x?.aplica || 'ambos' });
+                        const speech = x => ({ ...(x || {}), id: x?.id ? String(x.id) : `${Date.now()}_${Math.random()}`, title: x?.title || '', text: x?.text || '', aplica: x?.aplica || 'ambos' });
+                        t.fechas = t.fechas.map(f => ({ ...f, aplica: f.aplica || 'ambos' }));
+                        t.sections.complianceValidator = t.sections.complianceValidator.map(item);
+                        t.sections.keyInfo = t.sections.keyInfo.map(item);
+                        t.sections.speech = t.sections.speech.map(speech);
+                        t.sections.flujo = t.sections.flujo.map(f => ({ ...f, aplica: f.aplica || 'ambos' }));
+                        return t;
+                    }).filter(Boolean);
+                    this.sortTopics();
+                    this.cloudHydrated = true;
+                    this.saveLocal();
+                    this.renderSidebar();
+                    this.renderMain();
+                    this.updateSyncUI('synced', `${this.topics.length} temas recuperados`);
+                    if (info) { info.className = 'rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm leading-relaxed text-emerald-900'; info.innerHTML = `<strong>Recuperación exitosa.</strong> Se cargaron ${this.topics.length} temas desde el almacén histórico. La información queda además respaldada en este navegador.`; }
+                    showToast(`${this.topics.length} temas recuperados correctamente.`, 'success');
+                } catch (error) {
+                    console.error(error);
+                    const local = this.loadLocal();
+                    this.cloudHydrated = true;
+                    this.updateSyncUI(local ? 'local' : 'error', local ? 'Caché local' : 'Error de conexión');
+                    if (info) { info.className = 'rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm leading-relaxed text-rose-900'; info.textContent = `No se pudo recuperar el almacén histórico (${error.message}). No se sobrescribió ningún dato.`; }
+                    showToast('No se pudo recuperar el almacén histórico. No se borró nada.', 'error');
+                }
+            },
+
+            clearCloudKey() {
+                try { localStorage.removeItem('syncro_jsonbin_key'); } catch (_) {}
+                this.apiKey = '';
+                this.cloudEnabled = false;
+                this.updateSyncUI('local', 'Modo local');
+                const input = document.getElementById('cloudApiKey'); if (input) input.value = '';
+                showToast('La clave se eliminó de este navegador.', 'success');
+            },
+
+            exportBackup() {
+                const payload = { version: 'Syncro-v7-backup', exportedAt: new Date().toISOString(), temas: this.topics };
+                const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a'); a.href = url; a.download = `syncro-backup-${new Date().toISOString().slice(0,10)}.json`; a.click();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+                showToast('Respaldo JSON descargado.', 'success');
+            },
+
+            async importBackupFile(input) {
+                const file = input?.files?.[0]; if (!file) return;
+                try {
+                    const text = await file.text();
+                    const payload = JSON.parse(text);
+                    if (!Array.isArray(payload?.temas)) throw new Error('El archivo no contiene una colección válida de temas.');
+                    this.topics = payload.temas;
+                    this.sortTopics();
+                    this.cloudHydrated = true;
+                    this.saveLocal();
+                    this.renderSidebar(); this.renderMain();
+                    showToast(`${this.topics.length} temas importados localmente.`, 'success');
+                } catch (error) {
+                    showToast(`No se pudo importar el respaldo: ${error.message}`, 'error');
+                } finally { if (input) input.value = ''; }
+            },
+
             setupKeyboardShortcuts() {
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
-                        const modals = ['topicModal', 'itemModal', 'toolsModal', 'causisticasModal', 'reportesModal', 'flujoModal'];
+                        const modals = ['topicModal', 'itemModal', 'toolsModal', 'causisticasModal', 'reportesModal', 'flujoModal', 'cloudSettingsModal'];
                         for (let modalId of modals) {
                             const modal = document.getElementById(modalId);
                             if (modal && !modal.classList.contains('pointer-events-none')) {
@@ -772,6 +917,7 @@ body {
                                 if (modalId === 'causisticasModal') this.closeCausisticas();
                                 if (modalId === 'reportesModal') this.closeReportes();
                                 if (modalId === 'flujoModal') this.closeFlujoModal();
+                                if (modalId === 'cloudSettingsModal') this.closeCloudSettings();
                                 return;
                             }
                         }
@@ -1540,6 +1686,58 @@ body {
         });
         document.addEventListener('DOMContentLoaded', () => app.init());
     </script>
+    <div id="cloudSettingsModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-[90] flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300" aria-hidden="true" role="dialog" aria-modal="true" aria-labelledby="cloudSettingsTitle">
+        <div id="cloudSettingsContent" class="w-[min(94vw,620px)] bg-white rounded-[28px] shadow-2xl border border-slate-200 overflow-hidden translate-y-5 scale-[.98] transition-all duration-300">
+            <div class="px-6 sm:px-8 py-6 border-b border-slate-100 bg-gradient-to-r from-indigo-50 via-white to-slate-50 flex items-start justify-between gap-4">
+                <div>
+                    <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white border border-indigo-100 text-indigo-700 text-xs font-black uppercase tracking-wider mb-3">
+                        <i data-lucide="database-backup" class="w-4 h-4"></i> Recuperación de datos
+                    </div>
+                    <h2 id="cloudSettingsTitle" class="text-2xl font-black text-slate-900 tracking-tight">Conectar tus registros anteriores</h2>
+                    <p class="text-sm text-slate-500 mt-2 leading-relaxed">Syncro v5 guardaba tus temas en el mismo almacén de JSONBin. Puedes conectar este navegador a ese almacén para recuperar exactamente la información existente.</p>
+                </div>
+                <button onclick="app.closeCloudSettings()" class="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white transition-colors shrink-0" aria-label="Cerrar">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+            <div class="p-6 sm:p-8 space-y-6">
+                <div class="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex gap-3">
+                    <i data-lucide="shield-alert" class="w-5 h-5 text-amber-600 shrink-0 mt-0.5"></i>
+                    <div class="text-sm text-amber-900 leading-relaxed">
+                        <p class="font-extrabold mb-1">No pegaremos tu clave en el código.</p>
+                        <p>La clave se guarda solamente en el almacenamiento de este navegador. No la publiques en GitHub. Cuando termines la migración, puedes borrarla desde aquí.</p>
+                    </div>
+                </div>
+                <div>
+                    <label for="cloudApiKey" class="block text-sm font-bold text-slate-700 mb-2">Master Key de JSONBin</label>
+                    <div class="relative">
+                        <input id="cloudApiKey" type="password" autocomplete="off" spellcheck="false" placeholder="Pega aquí la Master Key del Syncro anterior" class="w-full px-4 py-3.5 pr-12 rounded-2xl border-2 border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10 font-mono text-sm transition-all">
+                        <button type="button" onclick="app.toggleCloudKeyVisibility()" class="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-slate-100" aria-label="Mostrar u ocultar clave"><i id="cloudKeyEye" data-lucide="eye" class="w-5 h-5"></i></button>
+                    </div>
+                    <p class="mt-2 text-xs text-slate-400">El identificador de datos heredado ya está configurado internamente: <span class="font-mono font-bold">69a0a424ae596e708f4d1b47</span></p>
+                </div>
+                <div id="cloudSettingsInfo" class="hidden rounded-2xl border p-4 text-sm leading-relaxed"></div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <button onclick="app.recoverLegacyData()" class="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-indigo-600 hover:bg-indigo-700 active:scale-[.99] text-white font-extrabold shadow-lg shadow-indigo-600/20 transition-all">
+                        <i data-lucide="cloud-download" class="w-5 h-5"></i> Recuperar mis registros
+                    </button>
+                    <button onclick="app.clearCloudKey()" class="flex items-center justify-center gap-2 px-4 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-extrabold border border-slate-200 transition-all">
+                        <i data-lucide="key-round" class="w-5 h-5"></i> Borrar clave local
+                    </button>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-3 pt-1">
+                    <button onclick="app.exportBackup()" class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold transition-all">
+                        <i data-lucide="download" class="w-4 h-4"></i> Descargar respaldo JSON
+                    </button>
+                    <label class="flex-1 flex items-center justify-center gap-2 px-4 py-3 rounded-2xl bg-white hover:bg-slate-50 text-slate-700 font-bold border border-slate-200 cursor-pointer transition-all">
+                        <i data-lucide="upload" class="w-4 h-4"></i> Importar respaldo JSON
+                        <input id="backupFileInput" type="file" accept="application/json,.json" class="hidden" onchange="app.importBackupFile(this)">
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <div id="toastContainer" class="fixed right-4 bottom-4 z-[100] flex flex-col gap-2 pointer-events-none w-[min(92vw,380px)]" aria-live="polite" aria-atomic="true"></div>
 </body>
 </html>
