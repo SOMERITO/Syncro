@@ -8,7 +8,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <title>Syncro v6.0 — Workspace Edition</title>
+    <title>Syncro v8 — Recuperación de datos</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.6/Sortable.min.js"></script>
@@ -152,7 +152,7 @@ body {
                 <span class="hidden lg:inline">Datos</span>
             </button>
 
-            <div id="syncStatus" onclick="app.openCloudSettings()" class="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1 transition-all duration-300" title="Estado de sincronización. Haz clic para configurar"> class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1 transition-all duration-300" title="Estado de sincronización">
+            <div id="syncStatus" onclick="app.openCloudSettings()" class="cursor-pointer flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-50 border border-slate-200 ml-1 transition-all duration-300" title="Estado de sincronización. Haz clic para configurar">
                 <div id="syncLight" class="w-2 h-2 rounded-full bg-amber-400 animate-pulse shadow-[0_0_8px_rgba(251,191,36,0.5)] transition-colors duration-300"></div>
                 <span id="syncText" class="text-xs font-bold text-slate-500 hidden sm:inline">Conectando...</span>
             </div>
@@ -180,7 +180,7 @@ body {
                 </div>
                 <div class="py-4 border-t border-slate-100 text-xs font-medium text-slate-400 text-center flex items-center justify-center gap-2 shrink-0">
                     <i data-lucide="shield-check" class="w-4 h-4 text-emerald-500"></i>
-                    <p>Workspace Edition v6.0</p>
+                    <p>Syncro v8 · Recuperación</p>
                 </div>
             </div>
         </aside>
@@ -475,12 +475,12 @@ body {
 
     <script>
         const SYNCRO_CONFIG = Object.freeze({
-            // Compatible con la fuente de datos utilizada por Syncro v5.x.
-            // El binId no es secreto; la Master Key NUNCA se publica en el HTML.
+            // MODO DE RECUPERACIÓN — SOLO PARA MIGRACIÓN LOCAL.
+            // Esta versión temporal conserva las credenciales del Syncro anterior
+            // para recuperar el almacén histórico y dejarlo guardado en este navegador.
+            // NO PUBLICAR ESTA VERSIÓN EN UN REPOSITORIO PÚBLICO.
             binId: '69a0a424ae596e708f4d1b47',
-            apiKey: (() => {
-                try { return localStorage.getItem('syncro_jsonbin_key') || ''; } catch (_) { return ''; }
-            })()
+            apiKey: '$2a$10$7PwFegDVLzoS8bJTQPdA7.27bk7D4odCTFnynWW1NkB5H6.PBt.nm'
         });
 
         const escapeHTML = (value = '') => String(value)
@@ -685,7 +685,16 @@ body {
                     if (!response.ok) throw new Error(`HTTP ${response.status}`);
                     const data = await response.json();
                     if (data.record && Array.isArray(data.record.temas)) {
-                        this.topics = data.record.temas.map(t => {
+                        const remoteTopics = data.record.temas;
+                        if (remoteTopics.length === 0) {
+                            const loadedLocal = this.loadLocal();
+                            this.cloudHydrated = true;
+                            this.updateSyncUI(loadedLocal ? 'local' : 'synced', loadedLocal ? 'Caché local' : 'Nube vacía');
+                            this.renderSidebar();
+                            this.renderMain();
+                            return;
+                        }
+                        this.topics = remoteTopics.map(t => {
                             if (typeof t !== 'object' || t === null) return null;
                             t.id = t.id ? String(t.id) : Date.now().toString();
                             t.title = t.title || 'Tema sin título';
@@ -1695,6 +1704,7 @@ body {
                     </div>
                     <h2 id="cloudSettingsTitle" class="text-2xl font-black text-slate-900 tracking-tight">Conectar tus registros anteriores</h2>
                     <p class="text-sm text-slate-500 mt-2 leading-relaxed">Syncro v5 guardaba tus temas en el mismo almacén de JSONBin. Puedes conectar este navegador a ese almacén para recuperar exactamente la información existente.</p>
+                    <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900 leading-relaxed"><strong>Modo de recuperación:</strong> esta versión está destinada a recuperar tus registros históricos. No la publiques como versión definitiva.</div>
                 </div>
                 <button onclick="app.closeCloudSettings()" class="p-2.5 rounded-xl text-slate-400 hover:text-slate-700 hover:bg-white transition-colors shrink-0" aria-label="Cerrar">
                     <i data-lucide="x" class="w-5 h-5"></i>
