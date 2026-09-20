@@ -120,6 +120,80 @@ body {
             opacity: 1;
         }
     </style>
+<style>
+
+/* ====== CARNÉ UNIVERSITARIO · UI MEJORADA ====== */
+.carne-ui{color:#111827}
+.carne-workspace{display:grid;grid-template-columns:minmax(0,.94fr) minmax(0,1.06fr);gap:18px;align-items:stretch}
+.carne-panel{position:relative;background:rgba(255,255,255,.96);border:1px solid #dfe5ee;border-radius:24px;box-shadow:0 24px 70px rgba(16,24,40,.10);overflow:hidden}
+.carne-search-panel{padding:24px;animation:carnePanelIn .7s .08s ease both}
+.carne-label{display:inline-flex;align-items:center;gap:7px;padding:6px 10px;border-radius:999px;background:#eef4ff;border:1px solid #d7e4ff;color:#155eef;font-size:11px;font-weight:850;letter-spacing:.04em;text-transform:uppercase}
+.carne-heading{margin:16px 0 5px;font-size:22px;line-height:1.15;letter-spacing:-.025em}
+.carne-description{margin:0 0 17px;color:#667085;font-size:13px;line-height:1.55}
+.carne-input-wrap{position:relative}
+.carne-input{width:100%;height:56px;border-radius:16px;border:1px solid #cad3e1;outline:none;padding:0 48px 0 16px;font-size:16px;color:#111827;background:#fff;transition:border-color .2s ease,box-shadow .2s ease,transform .2s ease}
+.carne-input::placeholder{color:#98a2b3}
+.carne-input:focus{border-color:#155eef;box-shadow:0 0 0 5px rgba(21,94,239,.10);transform:translateY(-1px)}
+.carne-search-icon{position:absolute;top:50%;right:15px;transform:translateY(-50%);width:23px;height:23px;color:#98a2b3;pointer-events:none;transition:color .2s ease,transform .2s ease}
+.carne-input-wrap:focus-within .carne-search-icon{color:#155eef;transform:translateY(-50%) scale(1.05)}
+.carne-hint-row{display:flex;justify-content:space-between;gap:12px;margin:9px 2px 18px;color:#667085;font-size:11px}
+.carne-shortcut{display:inline-flex;align-items:center;gap:5px;white-space:nowrap;font-weight:700;color:#475467}
+.carne-ui kbd{border:1px solid #d0d5dd;border-bottom-width:2px;background:#f8fafc;border-radius:6px;padding:1px 5px;font-family:inherit;font-size:10px}
+.carne-letters-title{margin:0 0 10px;font-size:13px;font-weight:850}
+.carne-letters{display:grid;grid-template-columns:repeat(9,1fr);gap:7px}
+.carne-letter-btn{position:relative;height:38px;border:1px solid #e4e8ef;border-radius:11px;background:#f7f9fc;color:#344054;font-size:13px;font-weight:850;cursor:pointer;transition:transform .18s ease,background .18s ease,border-color .18s ease,color .18s ease,box-shadow .18s ease;overflow:hidden}
+.carne-letter-btn::after{content:"";position:absolute;width:60%;height:60%;left:20%;top:120%;border-radius:999px;background:rgba(255,255,255,.55);transform:scale(.5);transition:transform .3s ease,top .3s ease}
+.carne-letter-btn:hover{transform:translateY(-2px);background:#fff;border-color:#b9cdf8;color:#155eef;box-shadow:0 7px 16px rgba(21,94,239,.10)}
+.carne-letter-btn:hover::after{top:15%;transform:scale(1.4)}
+.carne-letter-btn.active{background:linear-gradient(135deg,#155eef,#0047d9);border-color:#155eef;color:#fff;box-shadow:0 8px 18px rgba(21,94,239,.24);transform:translateY(-2px) scale(1.02)}
+.carne-bottom-actions{margin-top:18px;display:flex;justify-content:flex-start}
+.carne-schedule-btn{border:1px solid #ccd5e3;border-radius:11px;background:#fff;color:#344054;padding:10px 13px;font:inherit;font-size:11px;font-weight:800;cursor:pointer;transition:.18s ease}
+.carne-schedule-btn:hover{border-color:#aab9d1;background:#f9fbff;transform:translateY(-1px)}
+.carne-schedule-panel{display:none;margin-top:12px;border:1px solid #dfe5ee;border-radius:16px;overflow:hidden;background:#fff;animation:carnePanelIn .25s ease both}
+.carne-schedule-panel.open{display:block}
+.carne-schedule-head{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 13px;border-bottom:1px solid #e8edf3;background:#f8fafc;font-size:12px;font-weight:850}
+.carne-schedule-table{width:100%;border-collapse:collapse}
+.carne-schedule-table th,.carne-schedule-table td{padding:10px 12px;border-bottom:1px solid #e8edf3;text-align:left;font-size:11px}
+.carne-schedule-table th{background:#fff;font-weight:850}
+.carne-schedule-table tr:last-child td{border-bottom:0}
+.carne-note{padding:10px 12px;background:#f8fafc;color:#667085;font-size:10px;line-height:1.45}
+.carne-status{display:none;margin-top:12px;padding:10px 11px;border-radius:10px;background:#fff4f2;border:1px solid #f2c5bf;color:#b42318;font-size:12px;line-height:1.4;animation:carneShake .35s ease both}
+.carne-status.visible{display:block}
+.carne-result-panel{min-height:510px;display:flex;align-items:center;justify-content:center;padding:28px;background:radial-gradient(circle at 80% 15%,rgba(21,94,239,.08),transparent 34%),radial-gradient(circle at 15% 90%,rgba(8,116,67,.06),transparent 29%),rgba(255,255,255,.96);animation:carnePanelIn .7s .18s ease both}
+.carne-result-content{width:min(100%,470px);text-align:center}
+.carne-result-empty.hidden{display:none}
+.carne-empty-orb{width:92px;height:92px;margin:0 auto 17px;border-radius:28px;display:grid;place-items:center;background:linear-gradient(145deg,#f3f6fb,#e7edf7);border:1px solid #dfe6f1;box-shadow:inset 0 1px 0 rgba(255,255,255,.8),0 15px 30px rgba(16,24,40,.08);animation:carneSoftFloat 4s ease-in-out infinite}
+.carne-empty-orb svg{width:38px;height:38px;color:#7c8aa5}
+.carne-result-empty h2{margin:0;font-size:24px;letter-spacing:-.03em}
+.carne-result-empty p{margin:8px auto 0;max-width:340px;color:#667085;font-size:13px;line-height:1.5}
+.carne-result-card{display:none;width:100%;text-align:left}
+.carne-result-card.show{display:block;animation:carneResultReveal .65s cubic-bezier(.18,.89,.3,1.15) both}
+.carne-result-top{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:17px}
+.carne-kicker{color:#087443;font-size:11px;text-transform:uppercase;letter-spacing:.08em;font-weight:900;margin-bottom:7px}
+.carne-result-title{margin:0;font-size:27px;line-height:1.12;letter-spacing:-.035em}
+.carne-badge{flex:0 0 auto;width:62px;height:62px;border-radius:18px;display:grid;place-items:center;background:linear-gradient(145deg,#eefcf4,#e1f9ec);color:#087443;border:1px solid #b8e8cc;font-size:27px;font-weight:950;box-shadow:0 10px 24px rgba(8,116,67,.11);animation:carneBadgePop .65s .12s cubic-bezier(.18,.89,.3,1.15) both}
+.carne-date-highlight{position:relative;overflow:hidden;border-radius:20px;border:1px solid #cce9d8;background:linear-gradient(135deg,#f9fffb,#eefbf4);padding:21px 20px;box-shadow:0 13px 28px rgba(8,116,67,.08)}
+.carne-date-highlight::before{content:"";position:absolute;width:180px;height:180px;top:-100px;right:-70px;border-radius:50%;background:rgba(8,116,67,.08);animation:carneFloatBlob 8s ease-in-out infinite}
+.carne-date-label{position:relative;color:#5d6b7d;font-size:12px;font-weight:700;margin-bottom:4px}
+.carne-date-main{position:relative;font-size:31px;font-weight:950;line-height:1.1;letter-spacing:-.035em;color:#0d5f39;animation:carneTextGlow .9s .24s ease both}
+.carne-date-days{position:relative;margin-top:8px;color:#536173;font-size:12px;line-height:1.5}
+.carne-result-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:13px;color:#667085;font-size:11px}
+.carne-ready{display:inline-flex;align-items:center;gap:6px;color:#087443;font-weight:800}
+.carne-ready-dot{width:7px;height:7px;border-radius:999px;background:#13b26b;box-shadow:0 0 0 5px rgba(19,178,107,.12);animation:carnePulse 1.8s ease-in-out infinite}
+.carne-query-chip{display:inline-flex;align-items:center;gap:4px;padding:4px 8px;border-radius:999px;background:#f7f8fa;border:1px solid #e6e8ec;color:#667085;font-weight:700;max-width:56%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@keyframes carnePanelIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+@keyframes carneResultReveal{0%{opacity:0;transform:translateX(25px) scale(.98)}65%{opacity:1;transform:translateX(-4px) scale(1.01)}100%{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes carneBadgePop{0%{opacity:0;transform:scale(.55) rotate(-8deg)}70%{opacity:1;transform:scale(1.08) rotate(2deg)}100%{opacity:1;transform:scale(1) rotate(0)}}
+@keyframes carneSoftFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-6px)}}
+@keyframes carnePulse{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.18);opacity:.8}}
+@keyframes carneTextGlow{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:blur(0);transform:translateY(0)}}
+@keyframes carneShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}50%{transform:translateX(4px)}75%{transform:translateX(-3px)}}
+@keyframes carneFloatBlob{0%,100%{transform:translate3d(0,0,0)}50%{transform:translate3d(8px,-10px,0)}}
+@media (max-width:900px){.carne-workspace{grid-template-columns:1fr}.carne-result-panel{min-height:400px}}
+@media (max-width:560px){.carne-search-panel,.carne-result-panel{padding:18px}.carne-letters{grid-template-columns:repeat(7,1fr)}.carne-hint-row{flex-direction:column;align-items:flex-start}.carne-result-title{font-size:23px}.carne-date-main{font-size:26px}}
+@media (prefers-reduced-motion:reduce){.carne-ui *, .carne-ui *::before, .carne-ui *::after{animation:none !important;transition:none !important;scroll-behavior:auto !important}}
+
+</style>
 </head>
 <body class="flex flex-col h-screen bg-slate-50 text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
 
@@ -135,9 +209,9 @@ body {
         </div>
 
         <div class="ml-auto flex items-center gap-2">
-            <a href="https://somerito.github.io/Typify/" target="_blank" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Abrir Typify Pro">
+            <a href="https://somerito.github.io/Tipify/" target="_blank" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Abrir Tipify">
                 <i data-lucide="keyboard" class="w-4 h-4 text-indigo-600"></i>
-                <span class="hidden lg:inline">Typify</span>
+                <span class="hidden lg:inline">Tipify</span>
             </a>
             <button onclick="app.openReportes()" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Reportes">
                 <i data-lucide="clipboard-edit" class="w-4 h-4 text-[#d32f2f]"></i>
@@ -146,6 +220,10 @@ body {
             <button onclick="app.openCausisticas()" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-slate-50 text-slate-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Causísticas Zendesk">
                 <i data-lucide="book-open" class="w-4 h-4 text-[#E50019]"></i>
                 <span class="hidden lg:inline">Causísticas</span>
+            </button>
+            <button onclick="app.openCarne()" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-blue-50 text-slate-700 hover:text-blue-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Consultar entrega de carné universitario 2026-25">
+                <i data-lucide="badge-check" class="w-4 h-4 text-blue-600"></i>
+                <span class="hidden lg:inline">Carné</span>
             </button>
             <button onclick="app.openCloudSettings()" class="flex items-center gap-2 px-3 py-2 bg-white hover:bg-indigo-50 text-slate-700 hover:text-indigo-700 rounded-xl transition-all font-bold text-sm shadow-sm border border-slate-200" title="Configuración y recuperación de datos">
                 <i data-lucide="cloud-cog" class="w-4 h-4 text-indigo-600"></i>
@@ -189,6 +267,64 @@ body {
         <main class="flex-1 flex flex-col h-full overflow-hidden relative bg-slate-50/50">
             <div id="mainContent" class="flex-1 overflow-y-auto p-6 lg:p-12 custom-scrollbar fade-in scroll-smooth transition-colors duration-500"></div>
         </main>
+    </div>
+
+    <div id="carneModal" role="dialog" aria-modal="true" aria-labelledby="carneModalTitle" onclick="if(event.target===this) app.closeCarne()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300 p-3 sm:p-5">
+        <div id="carneModalContent" class="bg-white rounded-[24px] shadow-2xl w-[97%] max-w-[1160px] max-h-[94vh] overflow-hidden transform translate-y-8 transition-transform duration-300 relative border-t-[6px] border-blue-600 flex flex-col">
+            <div class="px-5 sm:px-7 py-4 border-b border-slate-100 flex items-center gap-3 shrink-0">
+                <div class="w-11 h-11 rounded-2xl bg-blue-50 text-blue-600 grid place-items-center shrink-0"><i data-lucide="badge-check" class="w-6 h-6"></i></div>
+                <div class="min-w-0 flex-1">
+                    <h2 id="carneModalTitle" class="text-xl sm:text-2xl font-black tracking-tight text-slate-900">Consulta de entrega de carné universitario</h2>
+                    <p class="text-xs sm:text-sm text-slate-500 mt-0.5">2026-25 · consulta por apellido paterno o inicial</p>
+                </div>
+                <button onclick="app.closeCarne()" aria-label="Cerrar" class="p-2.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-xl transition-colors shrink-0"><i data-lucide="x" class="w-5 h-5"></i></button>
+            </div>
+            <div class="p-4 sm:p-6 overflow-y-auto custom-scrollbar">
+                <div class="carne-ui">
+                    <div class="carne-workspace">
+                        <section class="carne-panel carne-search-panel">
+                            <span class="carne-label"><i data-lucide="scan-search" class="w-3.5 h-3.5"></i> Consulta rápida</span>
+                            <h3 class="carne-heading">Busca al alumno</h3>
+                            <p class="carne-description">Escribe el apellido paterno completo o solo su primera letra. El resultado aparece automáticamente.</p>
+                            <div class="carne-input-wrap">
+                                <input id="carneSearchInput" class="carne-input" type="text" maxlength="80" autocomplete="off" placeholder="Ej.: García, P, Quispe o Ñ" aria-label="Apellido paterno o inicial" oninput="app.searchCarne(this.value)">
+                                <i data-lucide="search" class="carne-search-icon"></i>
+                            </div>
+                            <div class="carne-hint-row">
+                                <span>La búsqueda es automática.</span>
+                                <span class="carne-shortcut"><kbd>Ctrl</kbd> + <kbd>F</kbd> → buscador</span>
+                            </div>
+                            <h4 class="carne-letters-title">O selecciona una letra</h4>
+                            <div id="carneLetters" class="carne-letters" aria-label="Letras del abecedario"></div>
+                            <div class="carne-bottom-actions">
+                                <button id="carneScheduleBtn" class="carne-schedule-btn" type="button" onclick="app.toggleCarneSchedule()"><i data-lucide="calendar-days" class="w-4 h-4 inline-block mr-1 align-[-2px]"></i> Ver cronograma completo</button>
+                            </div>
+                            <div id="carneSchedulePanel" class="carne-schedule-panel">
+                                <div class="carne-schedule-head"><span>Cronograma de entrega</span><button type="button" onclick="app.toggleCarneSchedule(false)" class="text-slate-400 hover:text-slate-700" aria-label="Ocultar cronograma"><i data-lucide="chevron-up" class="w-4 h-4"></i></button></div>
+                                <table class="carne-schedule-table"><thead><tr><th>Inicial</th><th>Fechas de entrega</th></tr></thead><tbody><tr><td><strong>A – E</strong></td><td>09 al 11 de noviembre</td></tr><tr><td><strong>F – O</strong></td><td>12, 13 y 16 de noviembre</td></tr><tr><td><strong>P – Z</strong></td><td>17 al 19 de noviembre</td></tr></tbody></table>
+                                <div class="carne-note">La clasificación se realiza por la primera letra del apellido paterno. La Ñ pertenece al rango F–O.</div>
+                            </div>
+                            <div id="carneError" class="carne-status" aria-live="polite"></div>
+                        </section>
+
+                        <section class="carne-panel carne-result-panel">
+                            <div class="carne-result-content">
+                                <div id="carneEmpty" class="carne-result-empty">
+                                    <div class="carne-empty-orb" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"><path d="M7 4h10a2 2 0 0 1 2 2v14H5V6a2 2 0 0 1 2-2Z" stroke="currentColor" stroke-width="1.5"/><path d="M9 2h6v4H9V2Z" stroke="currentColor" stroke-width="1.5"/><path d="M8.5 10h7M8.5 13h7M8.5 16h4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg></div>
+                                    <h3>La fecha aparecerá aquí</h3>
+                                    <p>Escribe un apellido o pulsa una letra para consultar inmediatamente la fecha de entrega.</p>
+                                </div>
+                                <div id="carneResult" class="carne-result-card" aria-live="polite">
+                                    <div class="carne-result-top"><div><div class="carne-kicker">Fecha de entrega</div><h3 id="carneResultTitle" class="carne-result-title"></h3></div><div id="carneResultLetter" class="carne-badge"></div></div>
+                                    <div class="carne-date-highlight"><div class="carne-date-label">Corresponde a las fechas</div><div id="carneResultDate" class="carne-date-main"></div><div id="carneResultDays" class="carne-date-days"></div></div>
+                                    <div class="carne-result-footer"><span class="carne-ready"><span class="carne-ready-dot"></span>Consulta encontrada</span><span id="carneQueryChip" class="carne-query-chip"></span></div>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
     <div id="reportesModal" role="dialog" aria-modal="true" onclick="if(event.target===this) app.closeReportes()" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center opacity-0 pointer-events-none transition-opacity duration-300">
@@ -607,6 +743,7 @@ body {
                 this.applySidebarState();
                 lucide.createIcons();
                 this.setupKeyboardShortcuts();
+                this.renderCarneLetters();
                 document.getElementById('cloudSettingsModal')?.addEventListener('click', (event) => {
                     if (event.target.id === 'cloudSettingsModal') this.closeCloudSettings();
                 });
@@ -916,7 +1053,7 @@ body {
             setupKeyboardShortcuts() {
                 document.addEventListener('keydown', (e) => {
                     if (e.key === 'Escape' && !['INPUT','TEXTAREA','SELECT'].includes(document.activeElement?.tagName)) {
-                        const modals = ['topicModal', 'itemModal', 'toolsModal', 'causisticasModal', 'reportesModal', 'flujoModal', 'cloudSettingsModal'];
+                        const modals = ['topicModal', 'itemModal', 'toolsModal', 'causisticasModal', 'reportesModal', 'carneModal', 'flujoModal', 'cloudSettingsModal'];
                         for (let modalId of modals) {
                             const modal = document.getElementById(modalId);
                             if (modal && !modal.classList.contains('pointer-events-none')) {
@@ -925,6 +1062,7 @@ body {
                                 if (modalId === 'toolsModal') this.closeToolsModal();
                                 if (modalId === 'causisticasModal') this.closeCausisticas();
                                 if (modalId === 'reportesModal') this.closeReportes();
+                                if (modalId === 'carneModal') this.closeCarne();
                                 if (modalId === 'flujoModal') this.closeFlujoModal();
                                 if (modalId === 'cloudSettingsModal') this.closeCloudSettings();
                                 return;
@@ -932,8 +1070,220 @@ body {
                         }
                         if (this.isSidebarOpen) this.toggleSidebar();
                     }
-                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); this.focusSearch(); }
+                    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
+                        e.preventDefault();
+                        const carne = document.getElementById('carneModal');
+                        if (carne && !carne.classList.contains('pointer-events-none')) {
+                            document.getElementById('carneSearchInput')?.focus();
+                            document.getElementById('carneSearchInput')?.select();
+                        } else {
+                            this.focusSearch();
+                        }
+                    }
                 });
+            },
+
+            // ====== CAUSÍSTICAS ======
+            openCausisticas() {
+                const modal = document.getElementById('causisticasModal');
+                const content = document.getElementById('causisticasModalContent');
+                if (!modal || !content) { showToast('No se pudo abrir Causísticas.', 'error'); return; }
+                modal.classList.remove('opacity-0', 'pointer-events-none');
+                content.classList.remove('translate-y-8');
+                this.causisticaCategory = 'todos';
+                this.causisticaSearchTerm = '';
+                const search = document.getElementById('buscadorCausisticas');
+                if (search) search.value = '';
+                document.querySelectorAll('#causisticasFilters .btn-filtro').forEach((btn, index) => {
+                    btn.classList.toggle('bg-[#E50019]', index === 0);
+                    btn.classList.toggle('text-white', index === 0);
+                    btn.classList.toggle('border-[#E50019]', index === 0);
+                    btn.classList.toggle('shadow-md', index === 0);
+                    if (index !== 0) {
+                        btn.classList.add('bg-slate-100','text-slate-600','border-slate-200');
+                        btn.classList.remove('bg-[#E50019]','text-white','border-[#E50019]','shadow-md');
+                    }
+                });
+                this.filterCausisticas('');
+                setTimeout(() => search?.focus(), 120);
+            },
+
+            closeCausisticas() {
+                const modal = document.getElementById('causisticasModal');
+                const content = document.getElementById('causisticasModalContent');
+                if (!modal || !content) return;
+                modal.classList.add('opacity-0', 'pointer-events-none');
+                content.classList.add('translate-y-8');
+            },
+
+            setCausisticaCategory(category, btn) {
+                this.causisticaCategory = category;
+                document.querySelectorAll('#causisticasFilters .btn-filtro').forEach(el => {
+                    el.classList.remove('bg-[#E50019]','text-white','border-[#E50019]','shadow-md');
+                    el.classList.add('bg-slate-100','text-slate-600','border-slate-200');
+                });
+                if (btn) {
+                    btn.classList.remove('bg-slate-100','text-slate-600','border-slate-200');
+                    btn.classList.add('bg-[#E50019]','text-white','border-[#E50019]','shadow-md');
+                }
+                this.filterCausisticas(document.getElementById('buscadorCausisticas')?.value || '');
+            },
+
+            filterCausisticas(term) {
+                this.causisticaSearchTerm = (term || '').trim().toLowerCase();
+                const items = document.querySelectorAll('#listaCausisticas .causistica-item');
+                let visible = 0;
+                items.forEach(item => {
+                    const category = item.dataset.cat || '';
+                    const text = item.querySelector('.opcion-text')?.textContent.toLowerCase() || '';
+                    const matchesCategory = this.causisticaCategory === 'todos' || category === this.causisticaCategory;
+                    const matchesSearch = !this.causisticaSearchTerm || text.includes(this.causisticaSearchTerm) || category.toLowerCase().includes(this.causisticaSearchTerm);
+                    const show = matchesCategory && matchesSearch;
+                    item.classList.toggle('hidden', !show);
+                    if (show) visible++;
+                });
+                document.getElementById('causisticasEmpty')?.classList.toggle('hidden', visible !== 0);
+            },
+
+            async copyCausistica(element) {
+                const text = element?.querySelector('.opcion-text')?.textContent?.trim();
+                if (!text) return;
+                const ok = await copyText(text);
+                if (!ok) { showToast('No se pudo copiar la causística.', 'error'); return; }
+                const original = element.innerHTML;
+                element.classList.add('ring-2','ring-emerald-300','bg-emerald-50');
+                showToast(`Copiado: ${text}`, 'success');
+                setTimeout(() => { element.classList.remove('ring-2','ring-emerald-300','bg-emerald-50'); }, 700);
+            },
+
+            // ====== CARNÉ UNIVERSITARIO 2026-25 ======
+            carneSchedule: {
+                AE: { date: '09 al 11 de noviembre', days: 'Lunes 9, martes 10 y miércoles 11 de noviembre' },
+                FO: { date: '12, 13 y 16 de noviembre', days: 'Jueves 12, viernes 13 y lunes 16 de noviembre' },
+                PZ: { date: '17 al 19 de noviembre', days: 'Martes 17, miércoles 18 y jueves 19 de noviembre' }
+            },
+            carneAlphabet: ['A','B','C','D','E','F','G','H','I','J','K','L','M','N','Ñ','O','P','Q','R','S','T','U','V','W','X','Y','Z'],
+
+            openCarne() {
+                const modal = document.getElementById('carneModal');
+                const content = document.getElementById('carneModalContent');
+                if (!modal || !content) return;
+                modal.classList.remove('opacity-0','pointer-events-none');
+                content.classList.remove('translate-y-8');
+                this.renderCarneLetters();
+                this.hideCarneResult();
+                this.toggleCarneSchedule(false);
+                const input = document.getElementById('carneSearchInput');
+                if (input) { input.value = ''; setTimeout(() => input.focus(), 120); }
+                lucide.createIcons();
+            },
+
+            closeCarne() {
+                const modal = document.getElementById('carneModal');
+                const content = document.getElementById('carneModalContent');
+                if (!modal || !content) return;
+                modal.classList.add('opacity-0','pointer-events-none');
+                content.classList.add('translate-y-8');
+            },
+
+            renderCarneLetters() {
+                const container = document.getElementById('carneLetters');
+                if (!container) return;
+                if (container.children.length === this.carneAlphabet.length) return;
+                container.innerHTML = '';
+                this.carneAlphabet.forEach(letter => {
+                    const button = document.createElement('button');
+                    button.type = 'button';
+                    button.dataset.letter = letter;
+                    button.className = 'carne-letter-btn';
+                    button.textContent = letter;
+                    button.setAttribute('aria-label', `Consultar letra ${letter}`);
+                    button.addEventListener('click', () => {
+                        const input = document.getElementById('carneSearchInput');
+                        if (input) input.value = letter;
+                        this.searchCarne(letter);
+                        input?.focus();
+                    });
+                    container.appendChild(button);
+                });
+            },
+
+            cleanCarneText(value) {
+                return String(value || '').trim().replace(/^[\s"'´`.,;:!?¡¿()\\/_-]+|[\s"'´`.,;:!?¡¿()\\/_-]+$/g, '');
+            },
+
+            firstCarneLetter(value) {
+                const cleaned = this.cleanCarneText(value);
+                if (!cleaned) return null;
+                const first = cleaned[0].toUpperCase();
+                const map = { 'Á':'A','À':'A','Ä':'A','Â':'A','É':'E','È':'E','Ë':'E','Ê':'E','Í':'I','Ì':'I','Ï':'I','Î':'I','Ó':'O','Ò':'O','Ö':'O','Ô':'O','Ú':'U','Ù':'U','Ü':'U','Û':'U' };
+                const letter = map[first] || first;
+                return this.carneAlphabet.includes(letter) ? letter : null;
+            },
+
+            carneRangeForLetter(letter) {
+                if ('ABCDE'.includes(letter)) return this.carneSchedule.AE;
+                if ('FGHIJKLMNO'.includes(letter) || letter === 'Ñ') return this.carneSchedule.FO;
+                if ('PQRSTUVWXYZ'.includes(letter)) return this.carneSchedule.PZ;
+                return null;
+            },
+
+            setActiveCarneLetter(letter) {
+                document.querySelectorAll('#carneLetters .carne-letter-btn').forEach(button => {
+                    button.classList.toggle('active', button.dataset.letter === letter);
+                });
+            },
+
+            hideCarneResult() {
+                document.getElementById('carneResult')?.classList.remove('show');
+                document.getElementById('carneEmpty')?.classList.remove('hidden');
+                const error = document.getElementById('carneError');
+                if (error) { error.classList.remove('visible'); error.textContent = ''; }
+                this.setActiveCarneLetter('');
+            },
+
+            showCarneError(message) {
+                document.getElementById('carneResult')?.classList.remove('show');
+                document.getElementById('carneEmpty')?.classList.remove('hidden');
+                const error = document.getElementById('carneError');
+                if (error) { error.textContent = message; error.classList.add('visible'); }
+                this.setActiveCarneLetter('');
+            },
+
+            toggleCarneSchedule(force) {
+                const panel = document.getElementById('carneSchedulePanel');
+                if (!panel) return;
+                const shouldOpen = typeof force === 'boolean' ? force : !panel.classList.contains('open');
+                panel.classList.toggle('open', shouldOpen);
+                const btn = document.getElementById('carneScheduleBtn');
+                if (btn) btn.setAttribute('aria-expanded', shouldOpen ? 'true' : 'false');
+            },
+
+            searchCarne(rawValue) {
+                const value = this.cleanCarneText(rawValue);
+                if (!value) { this.hideCarneResult(); return; }
+                const letter = this.firstCarneLetter(value);
+                if (!letter) { this.showCarneError('Ingresa una inicial válida o un apellido. Ejemplos: A, García, Ñ o Quispe.'); return; }
+                const group = this.carneRangeForLetter(letter);
+                if (!group) { this.showCarneError('No se pudo determinar el rango de fechas.'); return; }
+
+                this.setActiveCarneLetter(letter);
+                const result = document.getElementById('carneResult');
+                const empty = document.getElementById('carneEmpty');
+                const error = document.getElementById('carneError');
+                const isSingleLetter = value.length === 1;
+
+                result?.classList.remove('show');
+                void result?.offsetWidth;
+                document.getElementById('carneResultTitle').textContent = isSingleLetter ? `La letra ${letter} corresponde a:` : `Tu apellido comienza con ${letter}:`;
+                document.getElementById('carneResultLetter').textContent = letter;
+                document.getElementById('carneResultDate').textContent = group.date;
+                document.getElementById('carneResultDays').textContent = group.days;
+                document.getElementById('carneQueryChip').textContent = isSingleLetter ? `Inicial: ${letter}` : value;
+                result?.classList.add('show');
+                empty?.classList.add('hidden');
+                error?.classList.remove('visible');
+                if (error) error.textContent = '';
             },
 
             // Funciones modales (Reportes, Causisticas, Calculadoras)...
